@@ -1,0 +1,17 @@
+{
+  "name": "query-parser",
+  "version": "0.0.1",
+  "description": "Simple JS-based SQL-like query parser",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main"
+  },
+  "keywords": [
+    "query",
+    "parse",
+    "parser",
+    "sql"
+  ],
+  "author": "Daniel Alonso",
+  "license": "MIT"
+}
