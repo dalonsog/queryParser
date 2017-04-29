@@ -1,29 +1,6 @@
-const TABLES = {
-  my_table1: [
-    { C1: 1, C2: 'row1column2', C3: 1, C4: 1, C5: 'a'},
-    { C1: 2, C2: 'row2column2', C3: 2, C4: 2, C5: 'a'},
-    { C1: 3, C2: 'row3column2', C3: 2, C4: 3, C5: 'a'},
-    { C1: 2, C2: 'row4column2', C3: 1, C4: 4, C5: 'a'},
-    { C1: 4, C2: 'row5column2', C3: 3, C4: 5, C5: 'a'},
-    { C1: 2, C2: 'row6column2', C3: 2, C4: 6, C5: 'a'},
-    { C1: 3, C2: 'row7column2', C3: 1, C4: 7, C5: 'b'},
-    { C1: 1, C2: 'row8column2', C3: 2, C4: 8, C5: 'b'},
-    { C1: 3, C2: 'row9column2', C3: 1, C4: 9, C5: 'b'},
-    { C1: 2, C2: 'row10column2', C3: 2, C4: 10, C5: 'b'},
-    { C1: 4, C2: 'row11column2', C3: 1, C4: 11, C5: 'b'}
-  ]
-};
+const TABLES = require('./Data');
 
-function retrieveData (table, columns) {
-  var mapper = columns => elem => {
-    var finalElem = {};
-    columns.forEach(column => finalElem[column.AS] = elem[column.COLUMN]);
-    return finalElem;
-  };
-
-  //return table.map(mapper(columns));
-  return TABLES[table];
-}
+var retrieveData = table => TABLES[table].data;
 
 var limitter = (arr, limit) => limit ? arr.slice(0, limit) : arr;
 
@@ -164,4 +141,4 @@ exports.getData = function (options) {
   return data.map(mapper(options.SELECT));
 };
 
-exports.getTableHeaders = table => Object.keys(TABLES[table][0]);
+exports.getTableHeaders = table => TABLES[table].headers;
