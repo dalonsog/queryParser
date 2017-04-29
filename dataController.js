@@ -82,7 +82,9 @@ function orderer (arr, order) {
 }
 
 function aggregator (arr, group, aggregations) {
-  if (!aggregations.length) return arr[0];
+  if (!aggregations.length) return arr;
+
+  var groupedData = grouper (arr, group);
   
   var min = (data, c) => data.map(elem => elem[c])
                              .reduce((acc, val) => val < acc ? val : acc);
@@ -98,7 +100,7 @@ function aggregator (arr, group, aggregations) {
 
   var results = [];
 
-  arr.forEach(function (data) {
+  groupedData.forEach(function (data) {
     var result = {};
     group.forEach(function (groupKey) {
       result[groupKey] = data[0][groupKey];
@@ -152,8 +154,6 @@ exports.getData = function (options) {
   var data = retrieveData(options.FROM);
   // Filter data
   data = filterer(data, options.WHERE);
-  // Group data, if needed
-  data = grouper(data, options.GROUP);
   // Aggregate data, if needed
   data = aggregator(data, options.GROUP, options.AGGREGATION);
   // Order data, if needed
@@ -163,6 +163,5 @@ exports.getData = function (options) {
   // Map selected columns
   return data.map(mapper(options.SELECT));
 };
-
 
 exports.getTableHeaders = table => Object.keys(TABLES[table][0]);
