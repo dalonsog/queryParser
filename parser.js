@@ -7,7 +7,7 @@
 
 const dataController = require('./dataController');
 const QueryOptions = require('./queryOptions');
-const Tokenizer = require('./tokenizer');
+const tokenize = require('./tokenizer');
 
 const OPERATIONS = ['SELECT', 'FROM', 'WHERE', 'LIMIT', 'GROUP', 'ORDER'];
 
@@ -87,10 +87,12 @@ function mapAggregation (select) {
 module.exports = query => {
   var mode, values = {}, options = new QueryOptions(query);
 
-  var tokenizedQuery = Tokenizer.tokenize(query);
+  var tokenizedQuery = tokenize(query);
 
-  while (tokenizedQuery.hasNext()) {
-    var token = tokenizedQuery.next();
+  var nextToken = tokenizedQuery.next();
+
+  while (!nextToken.done) {
+    var token = nextToken.value.value;
     var tokenUpperCase = token.toUpperCase();
     // If new mode
     if (OPERATIONS.indexOf(tokenUpperCase) !== -1) {
@@ -99,6 +101,7 @@ module.exports = query => {
     } else
         // Add new value
         values[mode].push(token);
+    nextToken = tokenizedQuery.next();
   }
   values.SELECT = mapSelect(values.SELECT);
   values.AGGREGATION = mapAggregation(values.SELECT);

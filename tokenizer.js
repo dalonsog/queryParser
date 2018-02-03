@@ -1,7 +1,8 @@
 'use strict';
 
 const STOPPERS = [' ', ',', '\r', '\n'];
-const KEYWORDS = ['SELECT', 'FROM', 'WHERE', 'GROUP', 'ORDER', 'BY', 'LIMIT'];
+const KEYWORDS = ['SELECT', 'FROM', 'WHERE', 'GROUP', 'ORDER', 'BY',
+                  'LIMIT', 'AS'];
 
 const isStopper = c => STOPPERS.indexOf(c) !== -1;
 const isKeyword = t => KEYWORDS.indexOf(t) !== -1;
@@ -12,13 +13,12 @@ function* tokenGenerator (str) {
   var c = '';
 
   for (let i=0; i<str.length; i++) {
-    if (isStopper(str.charAt(i)) && c !== '') {
-      //t.push(c);
-      yield c;
-      c = '';
-    } else {
+    if (!isStopper(str.charAt(i))) {
       c += str.charAt(i);
       if (i===str.length -1) yield c;
+    } else if (c !== '') {
+      yield c;
+      c = '';
     }
   }
 }
