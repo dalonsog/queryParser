@@ -8,14 +8,7 @@
 const dataController = require('./dataController');
 const QueryOptions = require('./queryOptions');
 const tokenize = require('./tokenizer');
-
-const OPERATIONS = ['SELECT', 'FROM', 'WHERE', 'LIMIT', 'GROUP', 'ORDER'];
-
-const EXTRA_OPERATIONS = ['AS', 'BY', 'AND', 'ASC', 'DESC'];
-
-const AGGREGATION_FUNCTIONS = ['MIN', 'MAX', 'COUNT', 'SUM', 'AVG'];
-
-const RESERVED_WORDS = OPERATIONS.concat(EXTRA_OPERATIONS);
+const OPERATIONS = require('./reservedWords').OPERATORS;
 
 function addQueryOptions (values, options) {
   Object.keys(values).forEach(mode => {

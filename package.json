@@ -13,5 +13,8 @@
     "sql"
   ],
   "author": "Daniel Alonso",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "mocha": "^5.0.0"
+  }
 }
