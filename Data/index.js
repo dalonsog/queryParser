@@ -16,8 +16,8 @@ myTable1Raw.forEach((row, idx) => {
     return { name: hf[0], type: hf[1] };
   }));
   else {
-    row.split(',').forEach((val, i) => 
-      d[tables.my_table1.headers[i].name] = 
+    row.split(',').forEach((val, i) =>
+      d[tables.my_table1.headers[i].name] =
         eval(tables.my_table1.headers[i].type)(val)
     );
     tables.my_table1.addRow(d);

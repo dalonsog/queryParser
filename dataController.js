@@ -10,7 +10,7 @@ function filterFunc (arr, where) {
   var newArr = arr.slice(0);
   var columns = Object.keys(newArr[0]);
   var whereFilters = formatFilters(columns, where);
-  
+
   whereFilters.forEach(function (whereFilter) {
     newArr = newArr.filter(elem => eval(whereFilter));
   });
@@ -20,7 +20,7 @@ function filterFunc (arr, where) {
 
 function formatFilters (columns, filters) {
   var formattedFilters = [];
-  
+
   filters.forEach(function (whereFilter) {
     columns.forEach(function (column) {
       whereFilter = whereFilter.replace(column, 'elem.' + column);
@@ -34,7 +34,7 @@ function formatFilters (columns, filters) {
 
 function orderer (arr, order) {
   if (!order.length) return arr;
-  
+
   var orderedArr = arr.slice();
 
   orderedArr.sort(function (a, b) {
@@ -62,12 +62,12 @@ function aggregator (arr, group, aggregations) {
   if (!aggregations.length) return arr;
 
   var groupedData = grouper (arr, group);
-  
+
   var min = (data, c) => data.map(elem => elem[c])
                              .reduce((acc, val) => val < acc ? val : acc);
 
   var max = (data, c) => data.map(elem => elem[c])
-                             .reduce((acc, val) => val > acc ? val : acc);                             
+                             .reduce((acc, val) => val > acc ? val : acc);
 
   var sum = (data, c) => data.map(elem => elem[c])
                              .reduce((acc, val) => acc + val);
@@ -82,7 +82,7 @@ function aggregator (arr, group, aggregations) {
     group.forEach(function (groupKey) {
       result[groupKey] = data[0][groupKey];
     });
-    
+
     aggregations.forEach(function (agg) {
       var c = agg.COLUMN;
       var f = agg.FUNCTION;
@@ -108,7 +108,7 @@ function grouper (arr, group) {
 
   group.forEach(function (key) {
     var processedData = [];
-    
+
     groupedData.forEach(function (rawData) {
       var grouper = {};
 

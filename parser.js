@@ -19,8 +19,8 @@ function addQueryOptions (values, options) {
 function mapSelect (select) {
   var mapper = elem => {
     var splittedElem = elem.split('AS');
-    var selectObj = { 
-      COLUMN: splittedElem[0], 
+    var selectObj = {
+      COLUMN: splittedElem[0],
       AS: splittedElem[1] || splittedElem[0]
     };
 
@@ -30,9 +30,9 @@ function mapSelect (select) {
                                      .replace(/count\(|COUNT\(/g, 'COUNT')
                                      .replace(/sum\(|SUM\(/g, 'SUM')
                                      .replace(/\)/g, '');
-    
+
     var agg = splittedElem[0].match(/MIN|MAX|AVG|SUM|COUNT/);
-    
+
     if (agg) {
       selectObj.AGG = agg[0];
       selectObj.COLUMN = splittedElem[0];
@@ -41,10 +41,7 @@ function mapSelect (select) {
     return selectObj;
   };
 
-  return select.join(',')
-               .replace(/,AS,|,as,/g, 'AS')
-               .split(',')
-               .map(mapper);
+  return select.join(',').replace(/,AS,|,as,/g, 'AS').split(',').map(mapper);
 }
 
 function mapWhere (where) {
@@ -57,7 +54,7 @@ function mapOrder (order) {
     mode = mode ? mode[0] : 'ASC';
     return { COLUMN: elem.replace(mode, ''), MODE: mode };
   };
-  
+
   return order.join(',')
               .replace(/,asc|,ASC/g, 'ASC')
               .replace(/,desc|,DESC/g, 'DESC')
@@ -67,17 +64,16 @@ function mapOrder (order) {
 }
 
 function mapGroup (group) {
-  return group.join(',')
-              .replace(/by,|BY,/, '')
-              .split(',');
+  return group.join(',').replace(/by,|BY,/, '').split(',');
 }
 
 function mapAggregation (select) {
-  return select.reduce((acc, val) => 
+  return select.reduce((acc, val) =>
     val.AGG ? acc.concat({ COLUMN: val.COLUMN, FUNCTION: val.AGG }) : acc, []);
 }
 
 module.exports = query => {
+  var start = new Date().getTime();
   var mode, values = {}, options = new QueryOptions(query);
 
   var tokenizedQuery = tokenize(query);
@@ -86,12 +82,13 @@ module.exports = query => {
 
   while (!nextToken.done) {
     var token = nextToken.value.value;
+    var type = nextToken.value.type;
     var tokenUpperCase = token.toUpperCase();
     // If new mode
     if (OPERATIONS.indexOf(tokenUpperCase) !== -1) {
       mode = tokenUpperCase;
       values[mode] = [];
-    } else
+    } else if (token !== ',' && token !== ' ')
         // Add new value
         values[mode].push(token);
     nextToken = tokenizedQuery.next();
@@ -103,6 +100,8 @@ module.exports = query => {
   if (values.GROUP) values.GROUP = mapGroup(values.GROUP);
   // Add all values to queryOptions
   addQueryOptions(values, options);
-
-  return dataController.getData(options);
+  var data = dataController.getData(options);
+  var end = new Date().getTime();
+  console.log("\nTime(ms): " + (end - start).toString());
+  return data;
 };

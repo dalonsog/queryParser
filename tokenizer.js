@@ -1,7 +1,8 @@
 'use strict';
 
 const RESERVED_WORDS = require('./reservedWords');
-const STOPPERS = RESERVED_WORDS.SEPARATORS.concat(['(', ,')', '\r', '\n']);
+//const STOPPERS = RESERVED_WORDS.SEPARATORS.concat(['(', ,')', '\r', '\n']);
+const STOPPERS = RESERVED_WORDS.SEPARATORS.concat(['\r', '\n']);
 
 const isStopper = c => STOPPERS.indexOf(c) !== -1;
 const isOperator = t => RESERVED_WORDS.OPERATORS.indexOf(t) !== -1;
