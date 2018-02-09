@@ -13,6 +13,13 @@ const isSeparator = t => RESERVED_WORDS.SEPARATORS.indexOf(t) !== -1;
 const isNumber = t => !isNaN(parseFloat(t));
 const isString = t => t.charAt(0) === '"';
 
+const SEPARATORS_MAPPER = {
+  " ": "BLANK",
+  ",": "COMMA",
+  "AND": "AND",
+  "OR": "OR"
+};
+
 function* tokenGenerator (str) {
   var c = '';
 
@@ -33,11 +40,11 @@ function* tokenGenerator (str) {
 
 function classifyToken (token) {
   var t = token.toUpperCase();
-  if (isOperator(t)) return { value: token, type: 'OPERATOR__' + t };
+  if (isOperator(t)) return { value: token, type: t };
   if (isExtraOperator(t)) return { value: token, type: 'EXTRA_OPERATOR__' + t };
-  if (isAggregator(t)) return { value: token, type: 'AGGREGATOR__' + t};
+  if (isAggregator(t)) return { value: token, type: 'AGGREGATOR'};
   if (isConditioner(t)) return { value: token, type: 'CONDITIONER__' + t };
-  if (isSeparator(t)) return { value: token, type: 'SEPARATOR__' + t };
+  if (isSeparator(t)) return { value: token, type: SEPARATORS_MAPPER[t]};
   if (isNumber(t)) return { value: token, type: 'NUMBER' };
   if (isString(t)) return { value: token, type: 'STRING' };
   return { value: token, type: 'NAME' };
