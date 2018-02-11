@@ -1,7 +1,19 @@
 /*
+* DSL definition
+*
+* | => Node separator
 * [a=COMMA,COMMA|BLANK] => one or more a, separated by "," or ", "
 * {a,b,c} => one of [a, b, c]
 * #e; => template of e
+*
+* Example:
+*
+* Template "OPERATOR|BLANK|[NAME|EXTRA_OPERATOR__AS|NAME={COMMA,COMMA|BLANK}]"
+* results in a statement that must be formed by "OPERATOR" followed by a
+* blank space and one or more NAME AS NAME substatements, separated by either
+* a comma or a comma followed by a blank space.
+*
+* "OPERATOR C1 AS A, C2 AS B"
 */
 
 const TEMPLATES = {
@@ -52,6 +64,25 @@ class Node {
 
 // A container of templates
 class ConditionalTemplate {
+  constructor(nodes) {
+    this._template = new Template();
+    this._template.buildFromRaw(nodes);
+  }
+
+  test(template) {
+    return true;
+  }
+}
+
+// A container of templates
+class RepeatableTemplate {
+  constructor(nodes, sep) {
+    this._template = new Template();
+    this._template.buildFromRaw(nodes);
+    this._sep = new Template();
+    this._sep.buildFromRaw(sep);
+  }
+
   test(template) {
     return true;
   }
@@ -64,6 +95,22 @@ class Template {
 
   append(node) {
     this._nodes.push(node);
+  }
+
+  buildFromRaw(nodes) {
+    console.log(nodes);
+    nodes.forEach(node => {
+      if (node.type === 'conditional')
+        this.append(new ConditionalTemplate(node.values));
+      else if (node.type === 'repeatable')
+        this.append(new RepeatableTemplate(node.value, node.sep));
+      else if (node.type === 'node' && Array.isArray(node.value)) {
+        let t = new Template();
+        t.buildFromRaw(node.value)
+        this.append(t);
+      } else
+        this.append(new Node(node));
+    });
   }
 
   test(statement) {
@@ -100,40 +147,55 @@ function buildTemplate (template) {
 var hasOpenedBracket = e => e.split('[').length !== e.split(']').length
                             || e.split('{').length !== e.split('}').length;
 
-function createTemplate (rawTemplate) {
+function createTemplate (rawTemplate, nodeSeparator = '|') {
   var nodes = [];
   var c = '';
 
   for (let i=0; i<rawTemplate.length; i++) {
     let char = rawTemplate.charAt(i);
-    if (char === '|' && !hasOpenedBracket(c)) {
-      if (c.charAt(0) === '{' && c.charAt(c.length - 1) === '}')
-        c = {
-          type: 'conditional',
-          value: createTemplate(c.substring(1, c.length - 1))
+    switch (char) {
+      case nodeSeparator:
+        if (!hasOpenedBracket(c)) {
+          nodes.push(c);
+          c = '';
+        } else c += char;
+        break;
+      default:
+        c += char;
+        if (i === rawTemplate.length - 1 && !hasOpenedBracket(c)) {
+          nodes.push(c);
+          c = '';
         };
-      else if (c.charAt(0) === '[' && c.charAt(c.length - 1) === ']')
-        c = {
-          type: 'oneormore',
-          value: createTemplate(c.substring(1, c.length - 1))
-        };
-      nodes.push(c);
-      c = '';
-    } else
-      c += char;
+        break;
+    }
   }
-  if (c.charAt(0) === '{' && c.charAt(c.length - 1) === '}')
-    c = {
-      type: 'conditional',
-      value: createTemplate(c.substring(1, c.length - 1))
-    };
-  else if (c.charAt(0) === '[' && c.charAt(c.length - 1) === ']')
-    c = {
-      type: 'oneormore',
-      value: createTemplate(c.substring(1, c.length - 1))
-    };
-  nodes.push(c);
-  return nodes;
+  return nodes.map(n => {
+    switch (n.charAt(0)) {
+      case '[':
+        let sn = n.split('=');
+        return { 
+          type: 'repeatable',
+          value: createTemplate(sn[0].substring(1))[0],
+          sep: createTemplate(sn[1].substring(0, sn[1].length - 1))[0]
+        };
+      case '{':
+        if (n.charAt(n.length - 1) === '}')
+          return { 
+            type: 'conditional',
+            values: createTemplate(n.substring(1, n.length - 1), ',')
+          };
+        else 
+          return {
+            type: 'node',
+            value: createTemplate(n)
+          };
+      default:
+        return {
+          type: 'node',
+          value: n.indexOf('|') !== -1 ? createTemplate(n) : n
+        };
+    }
+  });
 }
 
 function printTemplate (t) {
@@ -146,12 +208,11 @@ module.exports = function checker(statement) {
 
   var template = buildTemplate(TEMPLATES[ts[0]]);
   console.log(template);
-  printTemplate(createTemplate(template));
-
+  var tt = createTemplate(template)
+  printTemplate(tt);
   var t = new Template();
-  t.append(new Node('OPERATOR__LIMIT'));
-  t.append(new Node('SEPARATOR__ '));
-  t.append(new Node('NUMBER'));
+  t.buildFromRaw(tt)
+  //printTemplate(t);
 
-  return t.test(statement);
+  //return t.test(statement);
 };
