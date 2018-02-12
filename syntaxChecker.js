@@ -59,32 +59,57 @@ class Node {
   test(nodeList) {
     return this._value === nodeList.splice(0, 1)[0];
   }
+
+  getRaw() {
+    return { object: 'node', value: this._value };
+  }
+
+  toString() {
+    return JSON.stringify(this.getRaw());
+  }
 }
 
 
 // A container of templates
 class ConditionalTemplate {
   constructor(nodes) {
-    this._template = new Template();
-    this._template.buildFromRaw(nodes);
+    this._nodes = nodes.map(Template._nodeFactory);
   }
 
   test(template) {
     return true;
+  }
+
+  getRaw() {
+    return { object: 'conditional', nodes: this._nodes.map(n => n.getRaw()) };
+  }
+
+  toString() {
+    return JSON.stringify(this.getRaw());
   }
 }
 
 // A container of templates
 class RepeatableTemplate {
-  constructor(nodes, sep) {
-    this._template = new Template();
-    this._template.buildFromRaw(nodes);
-    this._sep = new Template();
-    this._sep.buildFromRaw(sep);
+  constructor(value, sep) {
+    this._value = Template._nodeFactory(value);
+    this._sep = Template._nodeFactory(sep);
   }
 
   test(template) {
     return true;
+  }
+
+  getRaw() {
+    return {
+      object: 'repeatable',
+      value: this._value.getRaw(),
+      sep: this._sep.getRaw()
+    };
+  }
+
+  toString() {
+    return JSON.stringify(this.getRaw());
   }
 }
 
@@ -97,20 +122,21 @@ class Template {
     this._nodes.push(node);
   }
 
-  buildFromRaw(nodes) {
-    console.log(nodes);
-    nodes.forEach(node => {
-      if (node.type === 'conditional')
-        this.append(new ConditionalTemplate(node.values));
-      else if (node.type === 'repeatable')
-        this.append(new RepeatableTemplate(node.value, node.sep));
-      else if (node.type === 'node' && Array.isArray(node.value)) {
-        let t = new Template();
-        t.buildFromRaw(node.value)
-        this.append(t);
-      } else
-        this.append(new Node(node));
-    });
+  static buildFromRaw(nodes) {
+    var t = new Template();
+    nodes.forEach(n => { t.append(Template._nodeFactory(n)); });
+    return t;
+  }
+
+  static _nodeFactory(node) {
+    if (node.object === 'conditional')
+      return new ConditionalTemplate(node.values);
+    else if (node.object === 'repeatable')
+      return new RepeatableTemplate(node.value, node.sep);
+    else if (node.object === 'node' && Array.isArray(node.value))
+      return Template.buildFromRaw(node.value);
+    else
+      return new Node(node.value);
   }
 
   test(statement) {
@@ -123,96 +149,93 @@ class Template {
     }
     return true;
   }
+
+  getRaw() {
+    return {
+      object: 'template',
+      nodes: this._nodes.map(n => n.getRaw())
+    };
+  }
+
+  toString() {
+    return JSON.stringify(this.getRaw());
+  }
 }
 
-
-function buildTemplate (template) {
-  return template.split('|').map(w => {
-    return w.split('=').map(j => {
-      return j.split(',').map(e => {
-        let a = e.split('#')[1];
-        if (a) {
-          let b = a.split(';')[0]
-          if (b) {
-            let x = buildTemplate(TEMPLATES[b]);
-            return e.replace('#' + b + ';', x);
-          }
-        }
-        return e;
-      }).join(',')
-    }).join('=')
-  }).join('|');
+function buildBase (template) {
+  var idx = template.indexOf('#');
+  while (idx !== -1) {
+    let templateAlias = template.substring(idx, template.indexOf(';', idx) + 1);
+    template = template.replace(
+      templateAlias,
+      TEMPLATES[templateAlias.substring(1, templateAlias.length - 1)]
+    );
+    idx = template.indexOf('#');
+  }
+  return template;
 }
 
 var hasOpenedBracket = e => e.split('[').length !== e.split(']').length
                             || e.split('{').length !== e.split('}').length;
 
-function createTemplate (rawTemplate, nodeSeparator = '|') {
-  var nodes = [];
-  var c = '';
+var handleRepeatable = e => ({
+  object: 'repeatable',
+  value: parseBase(e[0].substring(1))[0],
+  sep: parseBase(e[1].substring(0, e[1].length - 1))[0]
+});
+
+var handleConditional = e => {
+  if (e.charAt(e.length - 1) === '}')
+    return {
+      object: 'conditional',
+      values: parseBase(e.substring(1, e.length - 1), ',')
+    };
+  else
+    return { object: 'node', value: parseBase(e) };
+}
+
+var handleDefault = e => ({
+  object: 'node',
+  value: e.indexOf('|') !== -1 ? parseBase(e) : e
+});
+
+function handleNode (n) {
+  let char0 = n.charAt(0);
+  if (char0 === '[') return handleRepeatable(n.split('='));
+  else if (char0 === '{') return handleConditional(n);
+  else return handleDefault(n);
+}
+
+function parseBase (rawTemplate, nodeSeparator = '|') {
+  var nodes = [], c = '';
 
   for (let i=0; i<rawTemplate.length; i++) {
     let char = rawTemplate.charAt(i);
-    switch (char) {
-      case nodeSeparator:
-        if (!hasOpenedBracket(c)) {
-          nodes.push(c);
-          c = '';
-        } else c += char;
-        break;
-      default:
-        c += char;
-        if (i === rawTemplate.length - 1 && !hasOpenedBracket(c)) {
-          nodes.push(c);
-          c = '';
-        };
-        break;
+    if (char === nodeSeparator) {
+      if (!hasOpenedBracket(c)) {
+        nodes.push(handleNode(c));
+        c = '';
+      } else c += char;
+    } else {
+      c += char;
+      if (i === rawTemplate.length - 1 && !hasOpenedBracket(c)) {
+        nodes.push(handleNode(c));
+        c = '';
+      }
     }
   }
-  return nodes.map(n => {
-    switch (n.charAt(0)) {
-      case '[':
-        let sn = n.split('=');
-        return { 
-          type: 'repeatable',
-          value: createTemplate(sn[0].substring(1))[0],
-          sep: createTemplate(sn[1].substring(0, sn[1].length - 1))[0]
-        };
-      case '{':
-        if (n.charAt(n.length - 1) === '}')
-          return { 
-            type: 'conditional',
-            values: createTemplate(n.substring(1, n.length - 1), ',')
-          };
-        else 
-          return {
-            type: 'node',
-            value: createTemplate(n)
-          };
-      default:
-        return {
-          type: 'node',
-          value: n.indexOf('|') !== -1 ? createTemplate(n) : n
-        };
-    }
-  });
-}
 
-function printTemplate (t) {
-  console.log(JSON.stringify(t));
+  return nodes;
 }
 
 module.exports = function checker(statement) {
+  var base = statement.split('|')[0];
+  var template = buildBase(TEMPLATES[base]);
   console.log('Checking: ' + statement);
-  var ts = statement.split('|');
+  console.log('Against: ' + template);
+  var tt = parseBase(template)
+  var t = Template.buildFromRaw(tt);
+  console.log(t.toString());
 
-  var template = buildTemplate(TEMPLATES[ts[0]]);
-  console.log(template);
-  var tt = createTemplate(template)
-  printTemplate(tt);
-  var t = new Template();
-  t.buildFromRaw(tt)
-  //printTemplate(t);
-
-  //return t.test(statement);
+  return t.test(statement);
 };
