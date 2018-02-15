@@ -2,8 +2,9 @@ const tokenize = require('./tokenizer');
 const checker = require('./syntaxChecker');
 const OPERATORS = require('./reservedWords').OPERATORS;
 const statements = [
-  'select a, b from table where a<5 and b>3 limit 5'
-  //'limit 5'
+  'select a, b as custom, 5 as number, "s" as string, max c as asdf\n' +
+  'from table\n' +
+  'limit 5'
 ];
 
 statements.forEach(st => {

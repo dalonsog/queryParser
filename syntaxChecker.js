@@ -1,63 +1,14 @@
-/*
-* DSL definition
-*
-* | => Node separator
-* [a=COMMA,COMMA|BLANK] => one or more a, separated by "," or ", "
-* {a,b,c} => one of [a, b, c]
-* #e; => template of e
-*
-* Example:
-*
-* Template "OPERATOR|BLANK|[NAME|EXTRA_OPERATOR__AS|NAME={COMMA,COMMA|BLANK}]"
-* results in a statement that must be formed by "OPERATOR" followed by a
-* blank space and one or more NAME AS NAME substatements, separated by either
-* a comma or a comma followed by a blank space.
-*
-* "OPERATOR C1 AS A, C2 AS B"
-*/
-
-const TEMPLATES = {
-  // Select templates
-  SELECT: 'SELECT|BLANK|[#COLUMN;=#COMMA_BLANK_SEP;]',
-  COLUMN: '{NAME,#AGGR;,#ALIAS;}',
-  AGGR: 'AGGREGATOR|NAME',
-  ALIAS: '{NAME,NUMBER,STRING,#AGGR;}|EXTRA_OPERATOR__AS|NAME',
-
-  // From template
-  FROM: 'FROM|BLANK|NAME',
-
-  // Where templates
-  WHERE: 'WHERE|BLANK|[#CONDITION;=#ALL_SEP;]',
-  CONDITION: 'NAME|#CONDITIONER;|{NAME,NUMBER,STRING}',
-  CONDITIONER: '{CONDITIONER__>, CONDITIONER__<, CONDITIONER__=,' +
-               ' CONDITIONER__<>, CONDITIONER__>=, CONDITIONER__<=}',
-
-  // Group template
-  GROUP: 'GROUP|EXTRA_OPERATOR_BY|BLANK|[NAME=#COMMA_BLANK_SEP;]',
-
-  // Order templates
-  ORDER: 'ORDER|EXTRA_OPERATOR_BY|BLANK|[#ORDERER;=#COMMA_BLANK_SEP;]',
-  ORDERER: '{NAME,NAME|#ORDER_MODE;}',
-  ORDER_MODE: '{EXTRA_OPERATOR_ASC,EXTRA_OPERATOR_DESC}',
-
-  // Limit template
-  LIMIT: 'LIMIT|BLANK|NUMBER',
-
-  // Extra templates
-
-  // Separators
-  ALL_SEP: '{#COMMA_BLANK_SEP;,#AND_OR_SEP;}',
-  COMMA_BLANK_SEP: '{COMMA,COMMA|BLANK}',
-  AND_OR_SEP: '{BLANK|AND|BLANK,BLANK|OR|BLANK}'
-};
+const TEMPLATES = require('./templates');
 
 class Node {
   constructor(value) {
     this._value = value;
   }
 
-  test(nodeList) {
-    return this._value === nodeList.splice(0, 1)[0];
+  test(nodesList) {
+    if (this._value !== nodesList.slice(0, 1)[0]) return false;
+    nodesList.splice(0, 1);
+    return true;
   }
 
   getRaw() {
@@ -69,15 +20,25 @@ class Node {
   }
 }
 
-
 // A container of templates
 class ConditionalTemplate {
   constructor(nodes) {
     this._nodes = nodes.map(Template._nodeFactory);
   }
 
-  test(template) {
-    return true;
+  test(nodesList) {
+    var passes = false;
+    var myNodes = this._nodes.slice();
+    var nodesAux;
+    while (myNodes.length && !passes) {
+      nodesAux = nodesList.slice();
+      passes = myNodes.splice(0, 1)[0].test(nodesAux);
+    }
+    if (passes) {
+      nodesList.splice(0);
+      nodesList.push(...nodesAux);
+    }
+    return passes;
   }
 
   getRaw() {
@@ -96,8 +57,12 @@ class RepeatableTemplate {
     this._sep = Template._nodeFactory(sep);
   }
 
-  test(template) {
-    return true;
+  test(nodesList) {
+    var passes = true;
+    this._value.test(nodesList);
+    while (nodesList.length && passes)
+      passes = this._sep.test(nodesList) && this._value.test(nodesList);
+    return passes;
   }
 
   getRaw() {
@@ -139,8 +104,8 @@ class Template {
       return new Node(node.value);
   }
 
-  test(statement) {
-    var nodes = statement.split('|'), error = false;
+  test(nodes) {
+    if (typeof nodes === 'string') nodes = nodes.split('|');
     var myNodes = this._nodes.slice();
     while (myNodes.length) {
       if (!nodes.length) return false;
@@ -235,7 +200,6 @@ module.exports = function checker(statement) {
   console.log('Against: ' + template);
   var tt = parseBase(template)
   var t = Template.buildFromRaw(tt);
-  console.log(t.toString());
 
   return t.test(statement);
 };
