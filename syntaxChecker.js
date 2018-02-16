@@ -6,9 +6,9 @@ class Node {
   }
 
   test(nodesList) {
-    if (this._value !== nodesList.slice(0, 1)[0]) return false;
+    if (this._value !== nodesList.slice(0, 1)[0]) return { check: false };
     nodesList.splice(0, 1);
-    return true;
+    return { check: true };
   }
 
   getRaw() {
@@ -20,21 +20,20 @@ class Node {
   }
 }
 
-// A container of templates
 class ConditionalTemplate {
   constructor(nodes) {
     this._nodes = nodes.map(Template._nodeFactory);
   }
 
   test(nodesList) {
-    var passes = false;
+    var passes = { check: false };
     var myNodes = this._nodes.slice();
     var nodesAux;
-    while (myNodes.length && !passes) {
+    while (myNodes.length && !passes.check) {
       nodesAux = nodesList.slice();
       passes = myNodes.splice(0, 1)[0].test(nodesAux);
     }
-    if (passes) {
+    if (passes.check) {
       nodesList.splice(0);
       nodesList.push(...nodesAux);
     }
@@ -50,7 +49,6 @@ class ConditionalTemplate {
   }
 }
 
-// A container of templates
 class RepeatableTemplate {
   constructor(value, sep) {
     this._value = Template._nodeFactory(value);
@@ -58,9 +56,9 @@ class RepeatableTemplate {
   }
 
   test(nodesList) {
-    var passes = true;
+    var passes = { check: true };
     this._value.test(nodesList);
-    while (nodesList.length && passes)
+    while (nodesList.length && passes.check)
       passes = this._sep.test(nodesList) && this._value.test(nodesList);
     return passes;
   }
@@ -108,11 +106,11 @@ class Template {
     if (typeof nodes === 'string') nodes = nodes.split('|');
     var myNodes = this._nodes.slice();
     while (myNodes.length) {
-      if (!nodes.length) return false;
+      if (!nodes.length) return { check: false, error: nodes };
       let myNode = myNodes.splice(0, 1)[0];
-      if (!myNode.test(nodes)) return false;
+      if (!myNode.test(nodes).check) return { check: false, error: nodes };
     }
-    return true;
+    return { check: true, error: null };
   }
 
   getRaw() {
