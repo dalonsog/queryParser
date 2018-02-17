@@ -56,8 +56,7 @@ class RepeatableTemplate {
   }
 
   test(nodesList) {
-    var passes = { check: true };
-    this._value.test(nodesList);
+    var passes = this._value.test(nodesList);
     while (nodesList.length && passes.check)
       passes = this._sep.test(nodesList) && this._value.test(nodesList);
     return passes;
@@ -143,7 +142,7 @@ var hasOpenedBracket = e => e.split('[').length !== e.split(']').length
 
 var handleRepeatable = e => ({
   object: 'repeatable',
-  value: parseBase(e[0].substring(1))[0],
+  value: handleDefault(e[0].substring(1)),
   sep: parseBase(e[1].substring(0, e[1].length - 1))[0]
 });
 
@@ -153,8 +152,7 @@ var handleConditional = e => {
       object: 'conditional',
       values: parseBase(e.substring(1, e.length - 1), ',')
     };
-  else
-    return { object: 'node', value: parseBase(e) };
+  else return handleDefault(e);
 }
 
 var handleDefault = e => ({
