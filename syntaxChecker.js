@@ -164,7 +164,7 @@ var handleDefault = e => ({
 
 function handleNode (n) {
   let char0 = n.charAt(0);
-  if (char0 === '[') return handleRepeatable(n.split('='));
+  if (char0 === '[') return handleRepeatable(n.split('::'));
   else if (char0 === '{') return handleConditional(n);
   else return handleDefault(n);
 }

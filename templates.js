@@ -15,12 +15,9 @@
 * "OPERATOR C1 AS A, C2 AS B"
 */
 
-// TODO
-// Change separators keychar in repeatables, '=' already in use by conditioners
-
 module.exports = {
   // Select templates
-  SELECT: 'SELECT|[#COLUMN;=COMMA]',
+  SELECT: 'SELECT|[#COLUMN;::COMMA]',
   COLUMN: '{#ALIAS;,#AGGR;,NAME}',
   AGGR: 'AGGREGATOR|NAME',
   ALIAS: '{#AGGR;,NUMBER,STRING,NAME}|EXTRA_OPERATOR__AS|NAME',
@@ -29,16 +26,16 @@ module.exports = {
   FROM: 'FROM|NAME',
 
   // Where templates
-  WHERE: 'WHERE|[#CONDITION;=#ALL_SEP;]',
+  WHERE: 'WHERE|[#CONDITION;::#ALL_SEP;]',
   CONDITION: 'NAME|#CONDITIONER;|{NAME,NUMBER,STRING}',
   CONDITIONER: '{CONDITIONER__>, CONDITIONER__<, CONDITIONER__=,' +
                ' CONDITIONER__<>, CONDITIONER__>=, CONDITIONER__<=}',
 
   // Group template
-  GROUP: 'GROUP|EXTRA_OPERATOR_BY|[NAME=COMMA]',
+  GROUP: 'GROUP|EXTRA_OPERATOR_BY|[NAME::COMMA]',
 
   // Order templates
-  ORDER: 'ORDER|EXTRA_OPERATOR_BY|[#ORDERER;=COMMA]',
+  ORDER: 'ORDER|EXTRA_OPERATOR_BY|[#ORDERER;::COMMA]',
   ORDERER: '{NAME,NAME|#ORDER_MODE;}',
   ORDER_MODE: '{EXTRA_OPERATOR_ASC,EXTRA_OPERATOR_DESC}',
 
