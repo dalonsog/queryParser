@@ -2,11 +2,7 @@ const tokenize = require('./tokenizer');
 const checker = require('./syntaxChecker');
 const OPERATORS = require('./reservedWords').OPERATORS;
 const statements = [
-  'select a, b as Alias, "s" as String, 5 as number, max c as Max_C',
-  'from table',
-  'where a > b, b <> 5',
-  'order by a',
-  'limit 10'
+  'where a = 2 or (b = c and x=2'
 ];
 
 statements.forEach(st => {

@@ -57,9 +57,10 @@ class RepeatableTemplate {
 
   test(nodesList) {
     var passes = this._value.test(nodesList);
-    while (nodesList.length && passes.check)
+    while (nodesList.length && passes.check){
       passes = this._sep.test(nodesList) && this._value.test(nodesList);
-    return passes;
+    }
+    return {check:true};
   }
 
   getRaw() {
@@ -137,8 +138,28 @@ function buildBase (template) {
   return template;
 }
 
-var hasOpenedBracket = e => e.split('[').length !== e.split(']').length
-                            || e.split('{').length !== e.split('}').length;
+var hasOpenedBracket = e => {
+  let b = [0, 0];
+  for (let i=0; i<e.length; i++) {
+    let c = e.charAt(i);
+    if (c==='[') b[0] += 1;
+    if (c===']') b[0] -= 1;
+    if (c==='{') b[1] += 1;
+    if (c==='}') b[1] -= 1;
+  }
+  return !!b[0] || !!b[1];
+};
+
+var isConditional = e => {
+  var opened = 0;
+  let i = 1;
+  while (opened >= 0 && i < e.length - 1) {
+    if (e.charAt(i) === '{') opened += 1;
+    if (e.charAt(i) === '}') opened -= 1;
+    i++;
+  }
+  return !opened;
+};
 
 var handleRepeatable = e => ({
   object: 'repeatable',
@@ -146,14 +167,10 @@ var handleRepeatable = e => ({
   sep: parseBase(e[1].substring(0, e[1].length - 1))[0]
 });
 
-var handleConditional = e => {
-  if (e.charAt(e.length - 1) === '}')
-    return {
-      object: 'conditional',
-      values: parseBase(e.substring(1, e.length - 1), ',')
-    };
-  else return handleDefault(e);
-}
+var handleConditional = e => ({
+  object: 'conditional',
+  values: parseBase(e.substring(1, e.length - 1), ',')
+});
 
 var handleDefault = e => ({
   object: 'node',
@@ -162,8 +179,16 @@ var handleDefault = e => ({
 
 function handleNode (n) {
   let char0 = n.charAt(0);
-  if (char0 === '[') return handleRepeatable(n.split('::'));
-  else if (char0 === '{') return handleConditional(n);
+  if (char0 === '[') {
+    let tmp = n.split('::');
+    if (tmp.length > 2) {
+      let sep = tmp.pop();
+      tmp = [tmp.join('::'), sep];
+    }
+    return handleRepeatable(tmp);
+  }
+  else if (char0 === '{' && isConditional(n))
+    return handleConditional(n);
   else return handleDefault(n);
 }
 

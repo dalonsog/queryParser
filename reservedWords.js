@@ -3,5 +3,5 @@ module.exports = {
   EXTRA_OPERATORS: ['AS', 'BY', 'NOT', 'ASC', 'DESC'],
   AGGREGATORS: ['MIN', 'MAX', 'COUNT', 'SUM', 'AVG'],
   CONDITIONERS: ['>', '<', '=', '<>', '>=', '<='],
-  SEPARATORS: [',', 'AND', 'OR']
+  SEPARATORS: [',', 'AND', 'OR', '(', ')']
 };

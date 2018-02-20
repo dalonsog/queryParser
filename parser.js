@@ -8,6 +8,7 @@
 const dataController = require('./dataController');
 const QueryOptions = require('./queryOptions');
 const tokenize = require('./tokenizer');
+const checker = require('./syntaxChecker');
 const OPERATIONS = require('./reservedWords').OPERATORS;
 
 function addQueryOptions (values, options) {
@@ -41,7 +42,7 @@ function mapSelect (select) {
     return selectObj;
   };
 
-  return select.join(',').replace(/,AS,|,as,/g, 'AS').split(',').map(mapper);
+  return select.join('').replace(/AS|as/g, 'AS').split(',').map(mapper);
 }
 
 function mapWhere (where) {
@@ -79,8 +80,17 @@ module.exports = query => {
   var tokenizedQuery = tokenize(query);
 
   var nextToken = tokenizedQuery.next();
-
+  var x = [], aux = [];
   while (!nextToken.done) {
+    if (OPERATIONS.indexOf(nextToken.value.value.toUpperCase()) !== -1 && aux.length) {
+      x.push(aux);
+      aux = [];
+    }
+    aux.push(nextToken.value);
+
+
+
+
     var token = nextToken.value.value;
     var type = nextToken.value.type;
     var tokenUpperCase = token.toUpperCase();
@@ -88,11 +98,15 @@ module.exports = query => {
     if (OPERATIONS.indexOf(tokenUpperCase) !== -1) {
       mode = tokenUpperCase;
       values[mode] = [];
-    } else if (token !== ',' && token !== ' ')
-        // Add new value
-        values[mode].push(token);
+    } else
+      // Add new value
+      values[mode].push(token);
     nextToken = tokenizedQuery.next();
   }
+  x.push(aux)
+  x.map(e => e.map(s => s.type).join('|')).forEach(s => {
+    console.log(checker(s));
+  });
   values.SELECT = mapSelect(values.SELECT);
   values.AGGREGATION = mapAggregation(values.SELECT);
   if (values.WHERE) values.WHERE = mapWhere(values.WHERE);

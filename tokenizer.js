@@ -1,7 +1,7 @@
 'use strict';
 
 const RESERVED_WORDS = require('./reservedWords');
-//const STOPPERS = RESERVED_WORDS.SEPARATORS.concat(['(', ,')', '\r', '\n']);
+//const STOPPERS = RESERVED_WORDS.SEPARATORS.concat(['(', ,')', ' ', '\r', '\n']);
 const STOPPERS = RESERVED_WORDS.SEPARATORS.concat([' ', '\r', '\n']);
 
 const isStopper = c => STOPPERS.indexOf(c) !== -1;
@@ -16,7 +16,9 @@ const isString = t => t.charAt(0) === '"';
 const SEPARATORS_MAPPER = {
   ",": "COMMA",
   "AND": "AND",
-  "OR": "OR"
+  "OR": "OR",
+  "(": "OPEN_BRACKET",
+  ")": "CLOSE_BRACKET"
 };
 
 function* tokenGenerator (str) {
@@ -26,7 +28,9 @@ function* tokenGenerator (str) {
     let char = str.charAt(i);
     if (!isStopper(char)) {
       c += char;
-      if (i===str.length -1) yield classifyToken(c);
+      if (i===str.length -1) {
+        yield classifyToken(c);
+      }
     } else {
       if (c !== '') {
         yield classifyToken(c);
