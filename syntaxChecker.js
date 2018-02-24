@@ -6,7 +6,8 @@ class Node {
   }
 
   test(nodesList) {
-    if (this._value !== nodesList.slice(0, 1)[0]) return { check: false };
+    var x = this._value !== nodesList.slice(0, 1)[0]
+    if (x) return { check: false };
     nodesList.splice(0, 1);
     return { check: true };
   }
@@ -56,11 +57,25 @@ class RepeatableTemplate {
   }
 
   test(nodesList) {
-    var passes = this._value.test(nodesList);
-    while (nodesList.length && passes.check){
-      passes = this._sep.test(nodesList) && this._value.test(nodesList);
+    var nodesAux = nodesList.slice();
+    var passes = this._value.test(nodesAux);
+    while (nodesAux.length && passes.check) {
+      passes = this._sep.test(nodesAux);
+      if (passes.check) {
+        nodesList.splice(0);
+        nodesList.push(...nodesAux);
+        passes = this._value.test(nodesAux);
+        if (passes.check) {
+          nodesList.splice(0);
+          nodesList.push(...nodesAux);
+        }
+      }
     }
-    return {check:true};
+    //if (passes.check) {
+    nodesList.splice(0);
+    nodesList.push(...nodesAux);
+    //}
+    return { check: true };
   }
 
   getRaw() {
@@ -102,15 +117,27 @@ class Template {
       return new Node(node.value);
   }
 
-  test(nodes) {
-    if (typeof nodes === 'string') nodes = nodes.split('|');
+  test(nodesList) {
     var myNodes = this._nodes.slice();
+    var nodesAux = nodesList.slice();
     while (myNodes.length) {
-      if (!nodes.length) return { check: false, error: nodes };
+      if (!nodesAux.length)
+        return { check: false, error: nodesAux };
       let myNode = myNodes.splice(0, 1)[0];
-      if (!myNode.test(nodes).check) return { check: false, error: nodes };
+      if (!myNode.test(nodesAux).check) {
+        return { check: false, error: nodesAux };
+      }
     }
+    nodesList.splice(0);
+    nodesList.push(...nodesAux);
     return { check: true, error: null };
+  }
+
+  testStatement(nodesList) {
+    if (typeof nodesList === 'string') nodesList = nodesList.split('|');
+    var passes = this.test(nodesList);
+    if (nodesList.length) return { check: false, error: nodesList };
+    return passes;
   }
 
   getRaw() {
@@ -214,13 +241,34 @@ function parseBase (rawTemplate, nodeSeparator = '|') {
   return nodes;
 }
 
-module.exports = function checker(statement) {
-  var base = statement.split('|')[0];
-  var template = buildBase(TEMPLATES[base]);
-  console.log('Checking: ' + statement);
-  console.log('Against: ' + template);
-  var tt = parseBase(template)
-  var t = Template.buildFromRaw(tt);
+function checkParenthesis (nodes) {
+  var balance = 0;
+  for (let i = 0; i < nodes.length; i++) {
+    let node = nodes[i];
+    balance += node === 'OPEN_BRACKET' ? 1 : node === 'CLOSE_BRACKET' ? -1 : 0;
+    if (balance < 0) return false;
+  }
+  return true;
+}
 
-  return t.test(statement);
+function cleanParenthesis (nodes) {
+  return nodes.reduce((acc, val) => {
+    if (val !== 'OPEN_BRACKET' && val !== 'CLOSE_BRACKET') acc.push(val);
+    return acc;
+  }, []);
+}
+
+module.exports = function checker(statement) {
+  var nodes = statement.split('|')
+  var base = nodes[0];
+  var template = buildBase(TEMPLATES[base]);
+  if (checkParenthesis(nodes)) {
+    statement = cleanParenthesis(nodes).join('|');
+    console.log('Checking: ' + statement);
+    console.log('Against: ' + template);
+    var tt = parseBase(template);
+    var t = Template.buildFromRaw(tt);
+
+    return t.testStatement(statement);
+  } else return { check: false, error: 'bad parenthesis' };
 };
