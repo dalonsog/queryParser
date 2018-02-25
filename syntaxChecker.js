@@ -262,13 +262,15 @@ module.exports = function checker(statement) {
   var nodes = statement.split('|')
   var base = nodes[0];
   var template = buildBase(TEMPLATES[base]);
-  if (checkParenthesis(nodes)) {
-    statement = cleanParenthesis(nodes).join('|');
-    console.log('Checking: ' + statement);
-    console.log('Against: ' + template);
-    var tt = parseBase(template);
-    var t = Template.buildFromRaw(tt);
+  
+  if (!checkParenthesis(nodes))
+    return { check: false, error: 'bad parenthesis' };
+  
+  statement = cleanParenthesis(nodes).join('|');
+  console.log('Checking: ' + statement);
+  console.log('Against: ' + template);
+  var tt = parseBase(template);
+  var t = Template.buildFromRaw(tt);
 
-    return t.testStatement(statement);
-  } else return { check: false, error: 'bad parenthesis' };
+  return t.testStatement(statement);
 };

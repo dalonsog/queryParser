@@ -10,7 +10,9 @@ const QUERY2 = 'select min(C1), max(C1), sum(C1), avg(C1), count(C1), C5\n' +
                'from my_table1\n' +
                'group by C5';
 
-[QUERY, QUERY2].forEach(query => {
+const QUERY3 = 'where a <> b';
+
+[QUERY, QUERY2, QUERY3].forEach(query => {
   var tokens = tokenize(query);
   var statements = [];
   var temp = [];
