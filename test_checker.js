@@ -2,7 +2,7 @@ const tokenize = require('./tokenizer');
 const checker = require('./syntaxChecker');
 const OPERATORS = require('./reservedWords').OPERATORS;
 const statements = [
-  'where o < > p'
+  'select max(c1)'
 ];
 
 statements.forEach(st => {

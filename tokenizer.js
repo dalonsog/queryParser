@@ -1,7 +1,6 @@
 'use strict';
 
 const RESERVED_WORDS = require('./reservedWords');
-//const STOPPERS = RESERVED_WORDS.SEPARATORS.concat(['(', ,')', ' ', '\r', '\n']);
 const SEPARATORS = RESERVED_WORDS.SEPARATORS.concat(RESERVED_WORDS.CONDITIONERS);
 const STOPPERS = SEPARATORS.concat([' ', '\r', '\n']);
 

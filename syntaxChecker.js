@@ -248,7 +248,7 @@ function checkParenthesis (nodes) {
     balance += node === 'OPEN_BRACKET' ? 1 : node === 'CLOSE_BRACKET' ? -1 : 0;
     if (balance < 0) return false;
   }
-  return true;
+  return balance === 0;
 }
 
 function cleanParenthesis (nodes) {
@@ -258,6 +258,15 @@ function cleanParenthesis (nodes) {
   }, []);
 }
 
+function checkAggrParenthesis(nodes) {
+  var isPreviousNodeAggr = false;
+  for (let i = 0; i < nodes.length - 1; i++)
+    if (nodes[i] === 'AGGREGATOR' && nodes[i + 1] !== 'OPEN_BRACKET')
+      return false;
+  
+  return true;
+}
+
 module.exports = function checker(statement) {
   var nodes = statement.split('|')
   var base = nodes[0];
@@ -265,6 +274,8 @@ module.exports = function checker(statement) {
   
   if (!checkParenthesis(nodes))
     return { check: false, error: 'bad parenthesis' };
+  if (!checkAggrParenthesis(nodes))
+    return { check: false, error: 'bad aggr parenthesis' };
   
   statement = cleanParenthesis(nodes).join('|');
   console.log('Checking: ' + statement);
