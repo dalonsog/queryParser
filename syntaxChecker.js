@@ -278,8 +278,6 @@ module.exports = function checker(statement) {
     return { check: false, error: 'bad aggr parenthesis' };
   
   statement = cleanParenthesis(nodes).join('|');
-  console.log('Checking: ' + statement);
-  console.log('Against: ' + template);
   var tt = parseBase(template);
   var t = Template.buildFromRaw(tt);
 

@@ -44,7 +44,7 @@ function* tokenGenerator (str) {
 function classifyToken (token) {
   var t = token.toUpperCase();
   if (isOperator(t) || isExtraOperator(t)) return { value: token, type: t };
-  if (isAggregator(t)) return { value: token, type: 'AGGREGATOR' };
+  if (isAggregator(t)) return { value: token.toUpperCase(), type: 'AGGREGATOR' };
   if (isConditioner(t)) return { value: token, type: 'CONDITIONER__' + t };
   if (isSeparator(t)) return { value: token, type: SEPARATORS_MAPPER[t] };
   if (isNumber(t)) return { value: token, type: 'NUMBER' };

@@ -19,7 +19,7 @@ module.exports = {
   // Select templates
   SELECT: 'SELECT|[#COLUMN;::COMMA]',
   COLUMN: '{#ALIAS;,#AGGR;,NAME}',
-  ALIAS: '{#AGGR;,NUMBER,STRING,NAME}|EXTRA_OPERATOR__AS|NAME',
+  ALIAS: '{#AGGR;,NUMBER,STRING,NAME}|AS|NAME',
   AGGR: 'AGGREGATOR|NAME',
 
   // From template
@@ -33,12 +33,12 @@ module.exports = {
                'CONDITIONER__=}',
 
   // Group template
-  GROUP: 'GROUP|EXTRA_OPERATOR__BY|[NAME::COMMA]',
+  GROUP: 'GROUP|BY|[NAME::COMMA]',
 
   // Order templates
-  ORDER: 'ORDER|EXTRA_OPERATOR__BY|[#ORDERER;::COMMA]',
+  ORDER: 'ORDER|BY|[#ORDERER;::COMMA]',
   ORDERER: '{NAME,NAME|#ORDER_MODE;}',
-  ORDER_MODE: '{EXTRA_OPERATOR__ASC,EXTRA_OPERATOR__DESC}',
+  ORDER_MODE: '{ASC,DESC}',
 
   // Limit template
   LIMIT: 'LIMIT|NUMBER',

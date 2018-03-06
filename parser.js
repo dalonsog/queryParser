@@ -78,35 +78,23 @@ module.exports = query => {
   var mode, values = {}, options = new QueryOptions(query);
 
   var tokenizedQuery = tokenize(query);
-
   var nextToken = tokenizedQuery.next();
-  var x = [], aux = [];
+  
   while (!nextToken.done) {
-    if (OPERATIONS.indexOf(nextToken.value.value.toUpperCase()) !== -1 && aux.length) {
-      x.push(aux);
-      aux = [];
-    }
-    aux.push(nextToken.value);
-
-
-
-
     var token = nextToken.value.value;
     var type = nextToken.value.type;
-    var tokenUpperCase = token.toUpperCase();
+    
     // If new mode
-    if (OPERATIONS.indexOf(tokenUpperCase) !== -1) {
-      mode = tokenUpperCase;
+    if (OPERATIONS.indexOf(type) !== -1) {
+      mode = type;
       values[mode] = [];
     } else
       // Add new value
       values[mode].push(token);
     nextToken = tokenizedQuery.next();
   }
-  x.push(aux)
-  x.map(e => e.map(s => s.type).join('|')).forEach(s => {
-    console.log(checker(s));
-  });
+  console.log(values)
+  
   values.SELECT = mapSelect(values.SELECT);
   values.AGGREGATION = mapAggregation(values.SELECT);
   if (values.WHERE) values.WHERE = mapWhere(values.WHERE);
