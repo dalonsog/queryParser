@@ -2,7 +2,7 @@ const tokenize = require('./tokenizer');
 const checker = require('./syntaxChecker');
 const OPERATORS = require('./reservedWords').OPERATORS;
 const statements = [
-  'select max(c1)'
+  'order by C4 desc'
 ];
 
 statements.forEach(st => {
@@ -20,6 +20,10 @@ statements.forEach(st => {
   }
   ts.push(t.slice());
   ts.forEach(x => {
-    if (x.length) console.log(checker(x.map(e => e.type).join('|')));
+    if (x.length) {
+      var statement = x.map(e => e.type).join('|');
+      console.log('Testing: ' + statement);
+      console.log(checker(statement));
+    }
   });
 });

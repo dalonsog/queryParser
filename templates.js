@@ -37,7 +37,7 @@ module.exports = {
 
   // Order templates
   ORDER: 'ORDER|BY|[#ORDERER;::COMMA]',
-  ORDERER: '{NAME,NAME|#ORDER_MODE;}',
+  ORDERER: '{NAME|#ORDER_MODE;,NAME}',
   ORDER_MODE: '{ASC,DESC}',
 
   // Limit template

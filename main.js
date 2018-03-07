@@ -11,7 +11,9 @@ const QUERY2 = 'select min(C1), max(C1), sum(C1), avg(C1), count(C1), C5\n' +
                'where C1 < 10\n' +
                'group by C5';
 
-var queries = [QUERY, QUERY2];
+const QUERY3 = 'select C1, C2 from my_table1 where C1 <= 4';
+
+var queries = [QUERY, QUERY2, QUERY3];
 
 queries.forEach(q => {
   console.log("\nParsing query: ");

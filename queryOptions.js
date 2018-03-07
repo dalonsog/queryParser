@@ -1,17 +1,22 @@
-var QueryOptions = module.exports = function (query) {
-  this.rawQuery = query;
-  this.SELECT = [];
-  this.WHERE = [];
-  this.ORDER = [];
-  this.GROUP = [];
-  this.AGGREGATION = [];
+class QueryOptions {
+  constructor(query) {
+    this.rawQuery = query;
+    this.SELECT = [];
+    this.WHERE = [];
+    this.ORDER = [];
+    this.GROUP = [];
+    this.AGGREGATION = [];
+  }
+
+  _isNodeArray(node) {
+    var arrayNodes = ['SELECT', 'ORDER', 'GROUP', 'AGGREGATION'];
+    return arrayNodes.indexOf(node) !== -1
+  }
+
+  addOption(option, value) {
+    if (this._isNodeArray(option)) this[option].push(value);
+    else this[option] = value;
+  }
 };
 
-QueryOptions.prototype.addOption = function (option, value) {
-  if (option === 'SELECT') this.SELECT.push(value);
-  else if (option === 'WHERE') this.WHERE.push(value);
-  else if (option === 'ORDER') this.ORDER.push(value);
-  else if (option === 'GROUP') this.GROUP.push(value);
-  else if (option === 'AGGREGATION') this.AGGREGATION.push(value);
-  else this[option] = value;
-};
+module.exports = QueryOptions;

@@ -1,4 +1,5 @@
 const TABLES = require('./Data');
+const FUNCTIONS = require('./functions');
 
 var retrieveData = table => TABLES[table].data;
 
@@ -9,27 +10,17 @@ var filterer = (arr, where) => where ? filterFunc(arr, where) : arr;
 function filterFunc (arr, where) {
   var newArr = arr.slice(0);
   var columns = Object.keys(newArr[0]);
-  var whereFilters = formatFilters(columns, where);
+  var whereFilter = formatFilter(columns, where);
 
-  whereFilters.forEach(function (whereFilter) {
-    newArr = newArr.filter(elem => eval(whereFilter));
-  });
-
-  return newArr;
+  return newArr.filter(elem => eval(whereFilter));
 }
 
-function formatFilters (columns, filters) {
-  var formattedFilters = [];
-
-  filters.forEach(function (whereFilter) {
-    columns.forEach(function (column) {
-      whereFilter = whereFilter.replace(column, 'elem.' + column);
-    });
-
-    formattedFilters.push(whereFilter);
+function formatFilter (columns, whereFilter) {
+  columns.forEach(function (column) {
+    whereFilter = whereFilter.split(column).join('elem.' + column);
   });
 
-  return formattedFilters;
+  return whereFilter;
 }
 
 function orderer (arr, order) {
@@ -61,20 +52,7 @@ function orderer (arr, order) {
 function aggregator (arr, group, aggregations) {
   if (!aggregations.length) return arr;
 
-  var groupedData = grouper (arr, group);
-
-  var min = (data, c) => data.map(elem => elem[c])
-                             .reduce((acc, val) => val < acc ? val : acc);
-
-  var max = (data, c) => data.map(elem => elem[c])
-                             .reduce((acc, val) => val > acc ? val : acc);
-
-  var sum = (data, c) => data.map(elem => elem[c])
-                             .reduce((acc, val) => acc + val);
-
-  var count = data => data.length;
-  var avg = (data, c) => sum(data, c) / count(data);
-
+  var groupedData = grouper(arr, group);
   var results = [];
 
   groupedData.forEach(function (data) {
@@ -84,10 +62,9 @@ function aggregator (arr, group, aggregations) {
     });
 
     aggregations.forEach(function (agg) {
-      var c = agg.COLUMN;
-      var f = agg.FUNCTION;
+      var f = FUNCTIONS[agg.FUNCTION.toLowerCase()];
 
-      result[c] = eval(f.toLowerCase())(data, c.replace(f, ''));
+      result[agg.COLUMN] = f(data, agg.COLUMN.replace(agg.FUNCTION, ''));
     });
     results.push(result);
   });
