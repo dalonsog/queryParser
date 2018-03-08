@@ -2,11 +2,11 @@
 // * Aggregations - done
 // * GROUP - done
 // * Syntax checking - almost done
-// * Functions' order -not sure if necessary
-// * Operations - prioritary
+// * Functions' order - not sure if necessary
+// * Operations - basic implementation
 
 const dataController = require('./dataController');
-const QueryOptions = require('./queryOptions');
+const QueryNodes = require('./queryNodes');
 const tokenize = require('./tokenizer');
 const checker = require('./syntaxChecker');
 const RESERVED_WORDS = require('./reservedWords');
@@ -14,10 +14,20 @@ const UPPERCASED_TOKENS = RESERVED_WORDS.EXTRA_OPERATORS
                             .concat(RESERVED_WORDS.AGGREGATORS)
                             .concat(['AND', 'OR']);
 
-function addQueryOptions (values, options) {
-  Object.keys(values).forEach(mode => {
-    values[mode].forEach(value => options.addOption(mode, value));
+function addQueryNodes (query, nodes) {
+  var options = new QueryNodes(query);
+
+  nodes.SELECT = mapSelect(nodes.SELECT);
+  nodes.AGGREGATION = mapAggregation(nodes.SELECT);
+  if (nodes.WHERE) nodes.WHERE = mapWhere(nodes.WHERE);
+  if (nodes.ORDER) nodes.ORDER = mapOrder(nodes.ORDER);
+  if (nodes.GROUP) nodes.GROUP = mapGroup(nodes.GROUP);
+
+  Object.keys(nodes).forEach(node => {
+    nodes[node].forEach(value => options.addValue(node, value));
   });
+
+  return options;
 }
 
 function findKeywordInElement (keywordList, element) {
@@ -81,44 +91,43 @@ function mapAggregation (select) {
     val.AGG ? acc.concat({ COLUMN: val.COLUMN, FUNCTION: val.AGG }) : acc, []);
 }
 
-module.exports = query => {
-  var start = new Date().getTime();
-  var mode, values = {}, options = new QueryOptions(query);
+function getQueryNodes (query) {
+  var currentNode, nodes = {};
 
   var tokenizedQuery = tokenize(query);
   var nextToken = tokenizedQuery.next();
 
   while (!nextToken.done) {
     var token = nextToken.value;
-
-    // If new mode
+    // If new node
     if (RESERVED_WORDS.OPERATORS.indexOf(token.type) !== -1) {
-      mode = token.type;
-      values[mode] = [];
+      currentNode = token.type;
+      nodes[currentNode] = [];
     }
     // Add new value
-    values[mode].push(token);
+    nodes[currentNode].push(token);
     nextToken = tokenizedQuery.next();
   }
-  Object.keys(values).forEach(function (key) {
-    let statement = getStatementByKey(values[key], 'type').join('|');
+
+  Object.keys(nodes).forEach(function (node) {
+    let statement = getStatementByKey(nodes[node], 'type').join('|');
     let check = checker(statement);
     if (!check.check)
       throw new Error("Parsing failed. Query has errors: " + check.error);
     else
-      values[key] = getStatementByKey(values[key].slice(1), 'value')
+      nodes[node] = getStatementByKey(nodes[node].slice(1), 'value')
                       .map(reservedWordsMapper);
   });
 
-  values.SELECT = mapSelect(values.SELECT);
-  values.AGGREGATION = mapAggregation(values.SELECT);
-  if (values.WHERE) values.WHERE = mapWhere(values.WHERE);
-  if (values.ORDER) values.ORDER = mapOrder(values.ORDER);
-  if (values.GROUP) values.GROUP = mapGroup(values.GROUP);
-  // Add all values to queryOptions
-  addQueryOptions(values, options);
+  return nodes;
+}
+
+module.exports = query => {
+  var start = new Date().getTime();
+  var nodes = getQueryNodes(query);
+  // Add all nodes to queryOptions
+  var options = addQueryNodes(query, nodes);
   var data = dataController.getData(options);
   var end = new Date().getTime();
-  console.log("\nTime(ms): " + (end - start).toString());
-  return data;
+  return { data, options, time: end - start };
 };

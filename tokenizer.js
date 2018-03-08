@@ -1,12 +1,15 @@
 'use strict';
 
 const RESERVED_WORDS = require('./reservedWords');
-const SEPARATORS = RESERVED_WORDS.SEPARATORS.concat(RESERVED_WORDS.CONDITIONERS);
+const SEPARATORS = RESERVED_WORDS.SEPARATORS
+                     .concat(RESERVED_WORDS.MATH_OPERATORS)
+                     .concat(RESERVED_WORDS.CONDITIONERS);
 const STOPPERS = SEPARATORS.concat([' ', '\r', '\n']);
 
 const isStopper = c => STOPPERS.indexOf(c) !== -1;
 const isOperator = t => RESERVED_WORDS.OPERATORS.indexOf(t) !== -1;
 const isExtraOperator = t => RESERVED_WORDS.EXTRA_OPERATORS.indexOf(t) !== -1;
+const isMathOperator = t => RESERVED_WORDS.MATH_OPERATORS.indexOf(t) !== -1;
 const isAggregator = t => RESERVED_WORDS.AGGREGATORS.indexOf(t) !== -1;
 const isConditioner = t => RESERVED_WORDS.CONDITIONERS.indexOf(t) !== -1;
 const isSeparator = t => SEPARATORS.indexOf(t) !== -1;
@@ -45,6 +48,7 @@ function classifyToken (token) {
   var t = token.toUpperCase();
   if (isOperator(t) || isExtraOperator(t)) return { value: token, type: t };
   if (isAggregator(t)) return { value: token.toUpperCase(), type: 'AGGREGATOR' };
+  if (isMathOperator(t)) return { value: token.toUpperCase(), type: 'MATH' };
   if (isConditioner(t)) return { value: token, type: 'CONDITIONER__' + t };
   if (isSeparator(t)) return { value: token, type: SEPARATORS_MAPPER[t] };
   if (isNumber(t)) return { value: token, type: 'NUMBER' };

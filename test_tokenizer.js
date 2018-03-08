@@ -10,9 +10,9 @@ const QUERY2 = 'select min(C1), max(C1), sum(C1), avg(C1), count(C1), C5\n' +
                'from my_table1\n' +
                'group by C5';
 
-const QUERY3 = 'select max(a)';
+const QUERY3 = 'select c+5 as op';
 
-[QUERY, QUERY2, QUERY3].forEach(query => {
+[QUERY3].forEach(query => {
   var tokens = tokenize(query);
   var statements = [];
   var temp = [];
@@ -24,11 +24,11 @@ const QUERY3 = 'select max(a)';
       temp = [];
     }
     //console.log(next.value);
-    temp.push(next.value.type);
+    temp.push(next.value);
     next = tokens.next();
   }
   statements.push(temp);
   //console.log(statements);
-  statements.forEach(st => { console.log(st.join('|')); });
+  statements.forEach(st => { console.log(st); });
   console.log('---');
 });

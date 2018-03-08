@@ -1,8 +1,7 @@
-class QueryOptions {
+class QueryNodes {
   constructor(query) {
     this.rawQuery = query;
     this.SELECT = [];
-    this.WHERE = [];
     this.ORDER = [];
     this.GROUP = [];
     this.AGGREGATION = [];
@@ -13,10 +12,10 @@ class QueryOptions {
     return arrayNodes.indexOf(node) !== -1
   }
 
-  addOption(option, value) {
-    if (this._isNodeArray(option)) this[option].push(value);
-    else this[option] = value;
+  addValue(node, value) {
+    if (this._isNodeArray(node)) this[node].push(value);
+    else this[node] = value;
   }
 };
 
-module.exports = QueryOptions;
+module.exports = QueryNodes;

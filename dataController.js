@@ -74,7 +74,10 @@ function aggregator (arr, group, aggregations) {
 
 var mapper = columns => elem => {
   var finalElem = {};
-  columns.forEach(column => finalElem[column.AS] = elem[column.COLUMN]);
+  columns.forEach(column => {
+    let c = formatFilter(Object.keys(elem), column.COLUMN);
+    return finalElem[column.AS] = eval(c);
+  });
   return finalElem;
 };
 

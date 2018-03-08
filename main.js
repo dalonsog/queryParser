@@ -11,7 +11,9 @@ const QUERY2 = 'select min(C1), max(C1), sum(C1), avg(C1), count(C1), C5\n' +
                'where C1 < 10\n' +
                'group by C5';
 
-const QUERY3 = 'select C1, C2 from my_table1 where C1 <= 4';
+const QUERY3 = 'select C1, C1+100 as CPLUS, C1-100 as CMINUS,\n' +
+               '       C1*100 as CTIMES, C1/100 as CDIVISION\n' +
+               'from my_table1';
 
 var queries = [QUERY, QUERY2, QUERY3];
 
@@ -19,5 +21,7 @@ queries.forEach(q => {
   console.log("\nParsing query: ");
   console.log(q);
   console.log("\nResults: ");
-  console.log(parseQuery(q));
+  var results = parseQuery(q)
+  console.log(results.data);
+  console.log('Time: ' + results.time.toString() + 'ms');
 });
