@@ -12,7 +12,8 @@ const QUERY2 = 'select min(C1), max(C1), sum(C1), avg(C1), count(C1), C5\n' +
                'group by C5';
 
 const QUERY3 = 'select C1, C1+100 as CPLUS, C1-100 as CMINUS,\n' +
-               '       C1*100 as CTIMES, C1/100 as CDIVISION\n' +
+               '       C1*100 as CTIMES, C1/100 as CDIVISION,\n' +
+               '       C1%2 as CMODULE, C1+(5-4) as CMULTI\n' +
                'from my_table1';
 
 var queries = [QUERY, QUERY2, QUERY3];

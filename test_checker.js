@@ -13,9 +13,9 @@ const QUERY2 = 'select min(C1), max(C1), sum(C1), avg(C1), count(C1), C5\n' +
                'where C1 < 10\n' +
                'group by C5';
 
-const QUERY3 = 'select C1 + 5 as C15 from my_table1';
+const QUERY3 = 'select C1 + 5 + 10 as C15 from my_table1';
 
-const statements = [QUERY, QUERY2, QUERY3];
+const statements = [QUERY3];
 
 statements.forEach(st => {
   var tg = tokenize(st);

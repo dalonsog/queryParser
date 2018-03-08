@@ -10,7 +10,7 @@ const QUERY2 = 'select min(C1), max(C1), sum(C1), avg(C1), count(C1), C5\n' +
                'from my_table1\n' +
                'group by C5';
 
-const QUERY3 = 'select c+5 as op';
+const QUERY3 = 'select c+5+15 as op';
 
 [QUERY3].forEach(query => {
   var tokens = tokenize(query);

@@ -1,7 +1,7 @@
 // TODO:
 // * Aggregations - done
 // * GROUP - done
-// * Syntax checking - almost done
+// * Syntax checking - REFACTOR NEEDED: Check nodes instead of templates
 // * Functions' order - not sure if necessary
 // * Operations - basic implementation
 
@@ -112,9 +112,9 @@ function getQueryNodes (query) {
   Object.keys(nodes).forEach(function (node) {
     let statement = getStatementByKey(nodes[node], 'type').join('|');
     let check = checker(statement);
-    if (!check.check)
-      throw new Error("Parsing failed. Query has errors: " + check.error);
-    else
+    //if (!check.check)
+      //throw new Error("Parsing failed. Query has errors: " + check.error);
+    //else
       nodes[node] = getStatementByKey(nodes[node].slice(1), 'value')
                       .map(reservedWordsMapper);
   });
@@ -127,6 +127,7 @@ module.exports = query => {
   var nodes = getQueryNodes(query);
   // Add all nodes to queryOptions
   var options = addQueryNodes(query, nodes);
+  console.log(options)
   var data = dataController.getData(options);
   var end = new Date().getTime();
   return { data, options, time: end - start };
