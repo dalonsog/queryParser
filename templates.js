@@ -1,52 +1,39 @@
-/*
-* DSL definition
-*
-* | => Node separator
-* [a=COMMA] => one or more a, separated by ","
-* {a,b,c} => one of [a, b, c]
-* #e; => template of e
-*
-* Example:
-*
-* Template "OPERATOR|[NAME|EXTRA_OPERATOR__AS|NAME=COMMA]"
-* results in a statement that must be formed by "OPERATOR" followed by a
-* blank space and one or more NAME AS NAME substatements, separated by a comma.
-*
-* "OPERATOR C1 AS A, C2 AS B"
-*/
+const ELEMENT = ['NAME', 'NUMBER', 'STRING'],
+      AGGR = ['AGGREGATOR|NAME'],
+      COLUMN_BASE = ELEMENT.concat(AGGR),
+      CONDITIONERS = ['CONDITIONER__<|CONDITIONER__>',
+                      'CONDITIONER__>|CONDITIONER__=',
+                      'CONDITIONER__<|CONDITIONER__=',
+                      'CONDITIONER__>',
+                      'CONDITIONER__<',
+                      'CONDITIONER__='];
+
+var aliaser = e => e + '|AS|NAME';
+
+function mather () {
+  var result = [];
+  COLUMN_BASE.forEach(function (x) {
+    COLUMN_BASE.forEach(function (y) {
+      result.push(aliaser(x + '|MATH|' + y));
+    });
+  });
+  return result;
+}
+
+function conditioner () {
+  var result = [];
+  ELEMENT.forEach(function (x) {
+    ELEMENT.forEach(function (y) {
+      result = result.concat(CONDITIONERS.map(e => x + '|' + e + '|' + y));
+    });
+  });
+  return result;
+}
 
 module.exports = {
-  // Select templates
-  SELECT: 'SELECT|[#COLUMN;::COMMA]',
-  COLUMN: '{#ALIAS;,#AGGR;,NAME}',
-  MATH_COLUMN: '{NUMBER,STRING,NAME}|MATH|{NUMBER,STRING,NAME}',
-  ALIAS: '{#MATH_COLUMN;,#AGGR;,NUMBER,STRING,NAME}|AS|NAME',
-  AGGR: 'AGGREGATOR|NAME',
-
-  // From template
-  FROM: 'FROM|NAME',
-
-  // Where templates
-  WHERE: 'WHERE|[#CONDITION;::#ALL_SEP;]',
-  CONDITION: '{NAME,NUMBER,STRING}|#CONDITIONER;|{NAME,NUMBER,STRING}',
-  CONDITIONER: '{CONDITIONER__<|CONDITIONER__>,CONDITIONER__>|CONDITIONER__=,' +
-               'CONDITIONER__<|CONDITIONER__=,CONDITIONER__>,CONDITIONER__<,' +
-               'CONDITIONER__=}',
-
-  // Group template
-  GROUP: 'GROUP|BY|[NAME::COMMA]',
-
-  // Order templates
-  ORDER: 'ORDER|BY|[#ORDERER;::COMMA]',
-  ORDERER: '{NAME|#ORDER_MODE;,NAME}',
-  ORDER_MODE: '{ASC,DESC}',
-
-  // Limit template
-  LIMIT: 'LIMIT|NUMBER',
-
-  // Extra templates
-
-  // Separators
-  ALL_SEP: '{COMMA,AND,OR}',
-  AND_OR_SEP: '{AND,OR}'
-};
+  column: COLUMN_BASE.concat(COLUMN_BASE.map(aliaser)).concat(mather()),
+  table: ['NAME'],
+  condition: conditioner(),
+  grouper: ['NAME'],
+  orderer: ['NAME', 'NAME|ASC', 'NAME|DESC']
+}
