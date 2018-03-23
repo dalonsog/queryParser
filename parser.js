@@ -5,6 +5,8 @@
 // * Functions' order - not sure if necessary
 // * Operations - basic implementation
 
+const _CHECK_SYNTAX_ = false;
+
 const dataController = require('./dataController');
 const QueryNodes = require('./queryNodes');
 const tokenize = require('./tokenizer');
@@ -14,20 +16,19 @@ const UPPERCASED_TOKENS = RESERVED_WORDS.EXTRA_OPERATORS
                             .concat(RESERVED_WORDS.AGGREGATORS)
                             .concat(['AND', 'OR']);
 
-function addQueryNodes (query, nodes) {
-  var options = new QueryNodes(query);
-
+function createQueryObject (query, nodes) {
   nodes.SELECT = mapSelect(nodes.SELECT);
   nodes.AGGREGATION = mapAggregation(nodes.SELECT);
   if (nodes.WHERE) nodes.WHERE = mapWhere(nodes.WHERE);
   if (nodes.ORDER) nodes.ORDER = mapOrder(nodes.ORDER);
   if (nodes.GROUP) nodes.GROUP = mapGroup(nodes.GROUP);
 
+  var queryObject = new QueryNodes(query);
   Object.keys(nodes).forEach(node => {
-    nodes[node].forEach(value => options.addValue(node, value));
+    nodes[node].forEach(value => queryObject.addValue(node, value));
   });
 
-  return options;
+  return queryObject;
 }
 
 function findKeywordInElement (keywordList, element) {
@@ -60,7 +61,7 @@ function mapSelect (select) {
     var agg = findKeywordInElement(RESERVED_WORDS.AGGREGATORS, splittedElem[0]);
     if (agg) {
       selectObj.AGG = agg;
-      selectObj.COLUMN = splittedElem[0];
+      selectObj.COLUMN = splittedElem[0].replace(agg, '');
     }
     return selectObj;
   });
@@ -76,14 +77,14 @@ function mapWhere (where) {
 }
 
 function mapOrder (order) {
-  return order.join(',').replace(/by,|BY,/, '').split(',').map(elem => {
+  return order.slice(1/*Removes BY*/).join('').split(',').map(elem => {
     var mode = findKeywordInElement(['ASC', 'DESC'], elem) || 'ASC';
     return { COLUMN: elem.replace(mode, ''), MODE: mode };
   });
 }
 
 function mapGroup (group) {
-  return group.join(',').replace(/by,|BY,/, '').split(',');
+  return group.slice(1/*Removes BY*/).join(',').split(',');
 }
 
 function mapAggregation (select) {
@@ -111,7 +112,7 @@ function getQueryNodes (query) {
 
   Object.keys(nodes).forEach(function (node) {
     let statement = getStatementByKey(nodes[node], 'type');
-    let check = checker(statement);
+    let check = _CHECK_SYNTAX_ ? checker(statement) : { check: true };
     if (!check.check)
       throw new Error("Parsing failed. Query has errors: " + check.error);
     else
@@ -122,12 +123,25 @@ function getQueryNodes (query) {
   return nodes;
 }
 
+function checkColumnsExist (queryObject) {
+  var tableHeaders = dataController.getTableHeaders(queryObject.FROM)
+                                   .map(e => e.name);
+  var requiredHeaders = queryObject.SELECT.reduce((acc, val) => {
+    if (acc.indexOf(val.COLUMN) === -1) acc.push(val.COLUMN);
+    return acc;
+  }, []);
+  for (let i = 0; i < requiredHeaders.length; i++)
+    if (tableHeaders.indexOf(requiredHeaders[i]) === -1) return false;
+  return true;
+}
+
 module.exports = query => {
   var start = new Date().getTime();
   var nodes = getQueryNodes(query);
-  // Add all nodes to queryOptions
-  var options = addQueryNodes(query, nodes);
-  var data = dataController.getData(options);
+  var queryObject = createQueryObject(query, nodes);
+  console.log(queryObject)
+  if (!checkColumnsExist(queryObject)) throw new Error("Column does not exist");
+  var data = dataController.getData(queryObject);
   var end = new Date().getTime();
-  return { data, options, time: end - start };
+  return { data, queryObject, time: end - start };
 };
