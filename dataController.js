@@ -76,7 +76,9 @@ var mapper = columns => elem => {
   var finalElem = {};
   columns.forEach(column => {
     let c = formatFilter(Object.keys(elem), column.COLUMN);
-    return finalElem[column.AS] = eval(c);
+    if (Object.keys(elem).indexOf(column.AS) === -1)
+      elem[column.AS] = eval(c);
+    finalElem[column.AS] = eval(c);
   });
   return finalElem;
 };

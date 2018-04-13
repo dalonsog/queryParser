@@ -1,9 +1,8 @@
 // TODO:
-// * Aggregations - done
-// * GROUP - done
-// * Syntax checking - REFACTOR NEEDED: Check nodes instead of templates
+// * Syntax checking - Several math operations not checking correctly
+// * Column checking
 // * Functions' order - not sure if necessary
-// * Operations - basic implementation
+// * Custom functions - Wishlist, not prioritary
 
 const _CHECK_SYNTAX_ = false;
 
@@ -130,17 +129,21 @@ function checkColumnsExist (queryObject) {
     if (acc.indexOf(val.COLUMN) === -1) acc.push(val.COLUMN);
     return acc;
   }, []);
+  var aliasedHeaders = queryObject.SELECT.reduce((acc, val) => {
+    if (acc.indexOf(val.AS) === -1) acc.push(val.AS);
+    return acc;
+  }, []);
   for (let i = 0; i < requiredHeaders.length; i++)
-    if (tableHeaders.indexOf(requiredHeaders[i]) === -1) return false;
-  return true;
+    if (tableHeaders.indexOf(requiredHeaders[i]) === -1)
+      throw new Error(
+          "Column %s does not exist".replace('%s', requiredHeaders[i]));
 }
 
 module.exports = query => {
   var start = new Date().getTime();
   var nodes = getQueryNodes(query);
   var queryObject = createQueryObject(query, nodes);
-  console.log(queryObject)
-  if (!checkColumnsExist(queryObject)) throw new Error("Column does not exist");
+  //checkColumnsExist(queryObject);
   var data = dataController.getData(queryObject);
   var end = new Date().getTime();
   return { data, queryObject, time: end - start };
