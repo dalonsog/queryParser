@@ -49,7 +49,7 @@ function classifyToken (token) {
   if (isOperator(t) || isExtraOperator(t)) return { value: token, type: t };
   if (isAggregator(t)) return { value: token.toUpperCase(), type: 'AGGREGATOR' };
   if (isMathOperator(t)) return { value: token.toUpperCase(), type: 'MATH' };
-  if (isConditioner(t)) return { value: token, type: 'CONDITIONER__' + t };
+  if (isConditioner(t)) return { value: token, type: 'CONDITIONER' };
   if (isSeparator(t)) return { value: token, type: SEPARATORS_MAPPER[t] };
   if (isNumber(t)) return { value: token, type: 'NUMBER' };
   if (isString(t)) return { value: token, type: 'STRING' };

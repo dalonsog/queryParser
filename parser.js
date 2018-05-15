@@ -1,10 +1,9 @@
 // TODO:
-// * Syntax checking - Several math operations not checking correctly
 // * Column checking
 // * Functions' order - not sure if necessary
 // * Custom functions - Wishlist, not prioritary
 
-const _CHECK_SYNTAX_ = false;
+const _CHECK_SYNTAX_ = true;
 
 const dataController = require('./dataController');
 const QueryNodes = require('./queryNodes');
