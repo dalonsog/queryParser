@@ -1,134 +1,84 @@
-const TEMPLATES = require('./templates');
+'use strict';
 
-function checkParenthesis (nodes) {
-  var balance = 0;
-  for (let i = 0; i < nodes.length; i++) {
-    let node = nodes[i];
-    balance += node === 'OPEN_BRACKET' ? 1 : node === 'CLOSE_BRACKET' ? -1 : 0;
-    if (balance < 0) return false;
-  }
-
-  return balance === 0;
-}
-
-function checkAggrParenthesis(nodes) {
-  var isPreviousNodeAggr = false;
-  for (let i = 0; i < nodes.length - 1; i++)
-    if (nodes[i] === 'AGGREGATOR' && nodes[i + 1] !== 'OPEN_BRACKET')
-      return false;
-
-  return true;
-}
-
-function checkTemplates (elem, templateList) {
-  for (let i = 0; i < templateList.length; i++){
-    if (templateList[i] === elem) return true;
-  }
-  return false;
-}
-
-function checkSelect (nodes) {
-  if (!checkParenthesis(nodes))
-    return { check: false, error: 'bad parenthesis' };
-  if (!checkAggrParenthesis(nodes))
-    return { check: false, error: 'bad aggr parenthesis' };
-
-  nodes = nodes.reduce((acc, val) => {
-    if (val === 'COMMA')
-      acc.push([]);
-    else if (val !== 'OPEN_BRACKET' && val !== 'CLOSE_BRACKET')
-      acc[acc.length - 1].push(val);
-    return acc;
-  }, [[]]).map(e => e.join('|'));
-
-  for (let i = 0; i < nodes.length; i++)
-    if (!checkTemplates(nodes[i], TEMPLATES.column))
-      return { check: false, error: nodes[i] };
-
-  return { check: true, error: null };
-}
-
-function checkFrom (nodes) {
-  for (let i = 0; i < nodes.length; i++)
-    if (!checkTemplates(nodes[i], TEMPLATES.table))
-      return { check: false, error: nodes[i] };
-
-  return { check: true, error: null };
-}
-
-function checkWhere (nodes) {
-  if (!checkParenthesis(nodes))
-    return { check: false, error: 'bad parenthesis' };
-
-  nodes = nodes.reduce((acc, val) => {
-    if (val === 'AND' || val === 'OR')
-      acc.push([]);
-    else if (val !== 'OPEN_BRACKET' && val !== 'CLOSE_BRACKET')
-      acc[acc.length - 1].push(val);
-    return acc;
-  }, [[]]).map(e => e.join('|'));
-
-  for (let i = 0; i < nodes.length; i++)
-    if (!checkTemplates(nodes[i], TEMPLATES.condition))
-      return { check: false, error: nodes[i] };
-
-  return { check: true, error: null };
-}
-
-function checkGroup (nodes) {
-  if (nodes.splice(0, 1)[0] !== 'BY')
-    return { check: false, error: 'needed "by" after "group"' };
-
-  nodes = nodes.reduce((acc, val) => {
-    if (val === 'COMMA') acc.push([]);
-    else acc[acc.length - 1].push(val);
-    return acc;
-  }, [[]]).map(e => e.join('|'));
-
-  for (let i = 0; i < nodes.length; i++)
-    if (!checkTemplates(nodes[i], TEMPLATES.grouper))
-      return { check: false, error: nodes[i] };
-
-  return { check: true, error: null };
-}
-
-function checkOrder (nodes) {
-  if (nodes.splice(0, 1)[0] !== 'BY')
-    return { check: false, error: 'needed "by" after "order"' };
-
-  nodes = nodes.reduce((acc, val) => {
-    if (val === 'COMMA') acc.push([]);
-    else acc[acc.length - 1].push(val);
-    return acc;
-  }, [[]]).map(e => e.join('|'));
-
-  for (let i = 0; i < nodes.length; i++)
-    if (!checkTemplates(nodes[i], TEMPLATES.orderer))
-      return { check: false, error: nodes[i] };
-
-  return { check: true, error: null };
-}
-
-function checkLimit (nodes) {
-  if (nodes.length > 1)
-    return { check: false, error: 'unexpected token: ' + nodes.slice(1) };
-  if (nodes[0] !== 'NUMBER')
-    return { check: false, error: 'expected number after "limit" ' };
-  return { check: true, error: null };
-}
-
-var defaultChecker = () => ({ check: true, error: null });
-
-var checkerFactory = {
-  SELECT: checkSelect,
-  FROM: checkFrom,
-  WHERE: checkWhere,
-  GROUP: checkGroup,
-  ORDER: checkOrder,
-  LIMIT: checkLimit
+const ALLOWED_SELECT = {
+  INIT: ['NAME', 'NUMBER', 'STRING', 'AGGREGATOR'],
+  NAME: ['INIT', 'MATH', 'AS', 'AGGREGATOR', 'COMMA', 'END', 'CLOSE_BRACKET'],
+  NUMBER: ['INIT', 'MATH', 'AS', 'COMMA'],
+  STRING: ['INIT', 'MATH', 'AS', 'COMMA'],
+  OPEN_BRACKET: ['NAME'],
+  CLOSE_BRACKET: ['AS', 'COMMA'],
+  AS: ['NAME', 'NUMBER', 'STRING', 'AGGREGATOR'],
+  AGGREGATOR: ['INIT', 'COMMA', 'END', 'OPEN_BRACKET'],
+  MATH: ['NAME', 'NUMBER', 'STRING'],
+  COMMA: ['NAME', 'AGGREGATOR', 'NUMBER', 'STRING']
 };
 
+const ALLOWED_FROM = {
+  INIT: ['NAME'],
+  NAME: ['END']
+};
+
+const ALLOWED_WHERE = {
+  INIT: ['OPEN_BRACKET', 'NAME', 'NUMBER'],
+  NAME: ['OPEN_BRACKET', 'CLOSE_BRACKET', 'CONDITIONER', 'AND', 'OR', 'END'],
+  NUMBER: ['OPEN_BRACKET', 'CLOSE_BRACKET', 'CONDITIONER', 'AND', 'OR', 'END'],
+  OPEN_BRACKET: ['NAME', 'NUMBER'],
+  CLOSE_BRACKET: ['AND', 'OR', 'END'],
+  CONDITIONER: ['NAME', 'NUMBER'],
+  AND: ['OPEN_BRACKET', 'NUMBER', 'NAME'],
+  OR: ['OPEN_BRACKET', 'NUMBER', 'NAME']
+};
+
+const ALLOWED_GROUP = {
+  INIT: ['BY'],
+  BY: ['NAME'],
+  NAME: ['COMMA', 'END'],
+  COMMA: ['NAME']
+};
+
+const ALLOWED_ORDER = {
+  INIT: ['BY'],
+  BY: ['NAME', 'ASC', 'DESC'],
+  NAME: ['ASC', 'DESC', 'COMMA', 'END'],
+  COMMA: ['NAME'],
+  ASC: ['COMMA', 'END'],
+  DESC: ['COMMA', 'END']
+};
+
+const ALLOWED_LIMIT = {
+  INIT: ['NUMBER'],
+  NUMBER: ['END']
+};
+
+const ALLOWED_NODES = {
+  SELECT: ALLOWED_SELECT,
+  FROM: ALLOWED_FROM,
+  WHERE: ALLOWED_WHERE,
+  GROUP: ALLOWED_GROUP,
+  ORDER: ALLOWED_ORDER,
+  LIMIT: ALLOWED_LIMIT
+};
+
+function buildError (base, idx, current, allowed) {
+  return 'Error at ' + idx + ' in '+ base
+    + '. Expecting one of "' + allowed.join(', ') + '", got "' + current + '".';
+}
+
 module.exports = function (nodes) {
-  var base = nodes.splice(0, 1);
-  return checkerFactory[base](nodes);
+  var base = nodes.splice(0, 1),
+      prev = 'INIT',
+      allowed = ALLOWED_NODES[base];
+  
+  for (let i = 0; i <= nodes.length; i++) {
+    let current = nodes[i] || 'END';
+    
+    if (allowed[prev].indexOf(current) === -1)
+      return {
+        check: false,
+        error: buildError(base, i, current, allowed[prev])
+      };
+    else
+      prev = current;
+  }
+  return { check: true, error: null };
 };

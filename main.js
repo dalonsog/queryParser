@@ -11,10 +11,10 @@ const QUERY2 = 'select min(C1), max(C1), sum(C1), avg(C1), count(C1), C5\n' +
                'where C1 < 10\n' +
                'group by C5';
 
-const QUERY3 = 'select C1, C1+100 as CPLUS, C1-100 as CMINUS,\n' +
+const QUERY3 = 'select C1, C1+100+1+1+1-1-1-1 as CPLUS, C1-100 as CMINUS,\n' +
                '       C1*100 as CTIMES, C1/100 as CDIVISION,\n' +
                '       C1%2 as CMODULE\n' +
-               'from my_table1';
+               'from my_table1 limit 1';
 
 var queries = [QUERY, QUERY2, QUERY3];
 
