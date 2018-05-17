@@ -6,7 +6,7 @@ const ALLOWED_SELECT = {
   NUMBER: ['INIT', 'MATH', 'AS', 'COMMA'],
   STRING: ['INIT', 'MATH', 'AS', 'COMMA'],
   OPEN_BRACKET: ['NAME'],
-  CLOSE_BRACKET: ['AS', 'COMMA'],
+  CLOSE_BRACKET: ['AS', 'COMMA', 'END'],
   AS: ['NAME', 'NUMBER', 'STRING', 'AGGREGATOR'],
   AGGREGATOR: ['INIT', 'COMMA', 'END', 'OPEN_BRACKET'],
   MATH: ['NAME', 'NUMBER', 'STRING'],
@@ -68,10 +68,10 @@ module.exports = function (nodes) {
   var base = nodes.splice(0, 1),
       prev = 'INIT',
       allowed = ALLOWED_NODES[base];
-  
+
   for (let i = 0; i <= nodes.length; i++) {
     let current = nodes[i] || 'END';
-    
+
     if (allowed[prev].indexOf(current) === -1)
       return {
         check: false,
@@ -80,5 +80,6 @@ module.exports = function (nodes) {
     else
       prev = current;
   }
+
   return { check: true, error: null };
 };

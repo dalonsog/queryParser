@@ -1,5 +1,7 @@
 // TODO:
 // * Column checking
+// * Improve aggregators parsing (both mapSelect and mapAggregation should be
+//   in the same function)
 // * Functions' order - not sure if necessary
 // * Custom functions - Wishlist, not prioritary
 
@@ -59,7 +61,7 @@ function mapSelect (select) {
     var agg = findKeywordInElement(RESERVED_WORDS.AGGREGATORS, splittedElem[0]);
     if (agg) {
       selectObj.AGG = agg;
-      selectObj.COLUMN = splittedElem[0].replace(agg, '');
+      selectObj.COLUMN = agg + '__' + splittedElem[0].replace(agg, '');
     }
     return selectObj;
   });
@@ -87,7 +89,7 @@ function mapGroup (group) {
 
 function mapAggregation (select) {
   return select.reduce((acc, val) =>
-    val.AGG ? acc.concat({ COLUMN: val.COLUMN, FUNCTION: val.AGG }) : acc, []);
+    val.AGG ? acc.concat({ COLUMN: val.COLUMN.split('__')[1], FUNCTION: val.AGG }) : acc, []);
 }
 
 function getQueryNodes (query) {

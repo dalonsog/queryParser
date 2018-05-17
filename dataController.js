@@ -64,11 +64,10 @@ function aggregator (arr, group, aggregations) {
     aggregations.forEach(function (agg) {
       var f = FUNCTIONS[agg.FUNCTION.toLowerCase()];
 
-      result[agg.COLUMN] = f(data, agg.COLUMN.replace(agg.FUNCTION, ''));
+      result[agg.FUNCTION + '__' + agg.COLUMN] = f(data, agg.COLUMN.replace(agg.FUNCTION, ''));
     });
     results.push(result);
   });
-
   return results;
 }
 
