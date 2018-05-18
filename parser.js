@@ -43,8 +43,9 @@ var reservedWordsMapper = word =>
   : word.toUpperCase();
 
 function mapSelect (select) {
+  select = select.map(e => e === 'AS' ? '(AS)' : e);
   return select.join('').split(',').map(elem => {
-    var splittedElem = elem.split('AS');
+    var splittedElem = elem.split('(AS)');
     var selectObj = {
       COLUMN: splittedElem[0],
       AS: splittedElem[1] || splittedElem[0]

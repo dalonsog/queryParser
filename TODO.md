@@ -1,4 +1,5 @@
 # TODO
+* Unit tests
 * Column checking
 * Improve aggregators parsing (both mapSelect and mapAggregation should be in the same function)
 * Functions' order - not sure if necessary

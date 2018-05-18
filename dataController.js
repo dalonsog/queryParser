@@ -110,7 +110,7 @@ function grouper (arr, group) {
 exports.getData = function (options) {
   // Get data from table
   var data = retrieveData(options.FROM);
-  // Filter data
+  // Filter data, if needed
   data = filterer(data, options.WHERE);
   // Aggregate data, if needed
   data = aggregator(data, options.GROUP, options.AGGREGATION);
