@@ -27,4 +27,17 @@ var median = (data, c) => {
   else return (sortedData[medianIndex] + sortedData[medianIndex - 1]) / 2;
 }
 
-module.exports = { min, max, sum, count, avg, values, dc, first, last, median };
+var mode = (data, c) => {
+  var aggregatedData = data.reduce((acc, val) => {
+    acc[val[c]] = acc[val[c]] ? acc[val[c]] + 1 : 1;
+    return acc;
+  }, {});
+  let key = '';
+  Object.keys(aggregatedData).forEach(function (k) {
+    if (!aggregatedData[key] || aggregatedData[k] > aggregatedData[key])
+      key = k;
+  });
+  return key;
+};
+
+module.exports = { min, max, sum, count, avg, values, dc, first, last, median, mode };
