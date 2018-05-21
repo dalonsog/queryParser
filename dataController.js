@@ -50,7 +50,7 @@ function orderer (arr, order) {
 }
 
 function aggregator (arr, group, aggregations) {
-  if (!aggregations.length) return arr;
+  if (!aggregations.length && !group.length) return arr;
 
   var groupedData = grouper(arr, group);
   var results = [];
@@ -64,7 +64,8 @@ function aggregator (arr, group, aggregations) {
     aggregations.forEach(function (agg) {
       var f = FUNCTIONS[agg.FUNCTION.toLowerCase()];
 
-      result[agg.FUNCTION + '__' + agg.COLUMN] = f(data, agg.COLUMN.replace(agg.FUNCTION, ''));
+      result[agg.FUNCTION + '__' + agg.COLUMN] =
+        f(data, agg.COLUMN.replace(agg.FUNCTION, ''));
     });
     results.push(result);
   });
@@ -74,7 +75,7 @@ function aggregator (arr, group, aggregations) {
 var mapper = columns => elem => {
   var finalElem = {};
   columns.forEach(column => {
-    let c = formatFilter(Object.keys(elem), column.COLUMN);
+    let c = formatFilter(Object.keys(elem), column.SELECTOR);
     if (Object.keys(elem).indexOf(column.AS) === -1)
       elem[column.AS] = eval(c);
     finalElem[column.AS] = eval(c);

@@ -11,7 +11,10 @@ const UPPERCASED_TOKENS = RESERVED_WORDS.EXTRA_OPERATORS
 
 function createQueryObject (query, nodes) {
   nodes.SELECT = mapSelect(nodes.SELECT);
-  nodes.AGGREGATION = mapAggregation(nodes.SELECT);
+  nodes.AGGREGATION = nodes.SELECT.reduce((acc, val) => {
+    if (val.AGG) acc.push(val.AGG);
+    return acc;
+  }, []);
   if (nodes.WHERE) nodes.WHERE = mapWhere(nodes.WHERE);
   if (nodes.ORDER) nodes.ORDER = mapOrder(nodes.ORDER);
   if (nodes.GROUP) nodes.GROUP = mapGroup(nodes.GROUP);
@@ -47,15 +50,16 @@ function mapSelect (select) {
   return select.join('').split(',').map(elem => {
     var splittedElem = elem.split('(AS)');
     var selectObj = {
-      COLUMN: splittedElem[0],
+      SELECTOR: splittedElem[0],
       AS: splittedElem[1] || splittedElem[0]
     };
     splittedElem[0] = splittedElem[0].replace(/\(|\)/g, '');
 
     var agg = findKeywordInElement(RESERVED_WORDS.AGGREGATORS, splittedElem[0]);
     if (agg) {
-      selectObj.AGG = agg;
-      selectObj.COLUMN = agg + '__' + splittedElem[0].replace(agg, '');
+      let col = splittedElem[0].replace(agg, '');
+      selectObj.AGG = { COLUMN: col, FUNCTION: agg };
+      selectObj.SELECTOR = agg + '__' + col;
     }
     return selectObj;
   });
@@ -79,11 +83,6 @@ function mapOrder (order) {
 
 function mapGroup (group) {
   return group.slice(1/*Removes BY*/).join(',').split(',');
-}
-
-function mapAggregation (select) {
-  return select.reduce((acc, val) =>
-    val.AGG ? acc.concat({ COLUMN: val.COLUMN.split('__')[1], FUNCTION: val.AGG }) : acc, []);
 }
 
 function getQueryNodes (query) {
@@ -121,7 +120,7 @@ function checkColumnsExist (queryObject) {
   var tableHeaders = dataController.getTableHeaders(queryObject.FROM)
                                    .map(e => e.name);
   var requiredHeaders = queryObject.SELECT.reduce((acc, val) => {
-    if (acc.indexOf(val.COLUMN) === -1) acc.push(val.COLUMN);
+    if (acc.indexOf(val.SELECTOR) === -1) acc.push(val.SELECTOR);
     return acc;
   }, []);
   var aliasedHeaders = queryObject.SELECT.reduce((acc, val) => {
@@ -139,6 +138,7 @@ module.exports = query => {
   var nodes = getQueryNodes(query);
   var queryObject = createQueryObject(query, nodes);
   //checkColumnsExist(queryObject);
+  console.log(queryObject)
   var data = dataController.getData(queryObject);
   var end = new Date().getTime();
   return { data, queryObject, time: end - start };
