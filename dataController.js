@@ -50,7 +50,7 @@ function orderer (arr, order) {
 }
 
 function aggregator (arr, group, aggregations) {
-  if (!aggregations.length && !group.length) return arr;
+  if (!aggregations.length) return arr;
 
   var groupedData = grouper(arr, group);
   var results = [];
@@ -124,3 +124,5 @@ exports.getData = function (options) {
 };
 
 exports.getTableHeaders = table => TABLES[table].headers;
+
+exports.getTables = () => Object.keys(TABLES);
