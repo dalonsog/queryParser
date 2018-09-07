@@ -16,7 +16,9 @@ const QUERY3 = 'select C1, C1+100+1+1+1-1-1-1 as CPLUS, C1-100 as CMINUS,\n' +
                '       C1%2 as CMODULE\n' +
                'from my_table1 limit 1';
 
-var queries = [/*QUERY, */QUERY2/*, QUERY3*/];
+const QUERY_BASE = 'select * from my_table1';
+
+var queries = [QUERY_BASE, QUERY, QUERY2, QUERY3];
 
 queries.forEach(q => {
   console.log("\nParsing query: ");

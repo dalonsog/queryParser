@@ -7,4 +7,4 @@
 * ISNULL command for 'where' clause
 * NOT command for 'where' clause
 * Check column types
-* Add ASTERISK selector
+* Allow MATH operators on where clause

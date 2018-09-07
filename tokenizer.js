@@ -15,6 +15,7 @@ const isConditioner = t => RESERVED_WORDS.CONDITIONERS.indexOf(t) !== -1;
 const isSeparator = t => SEPARATORS.indexOf(t) !== -1;
 const isNumber = t => !isNaN(parseFloat(t));
 const isString = t => t.charAt(0) === '"';
+const isSelectAll = t => t === '*';
 
 const SEPARATORS_MAPPER = {
   ",": "COMMA",
@@ -46,14 +47,15 @@ function* tokenGenerator (str) {
 
 function classifyToken (token) {
   var t = token.toUpperCase();
-  if (isOperator(t) || isExtraOperator(t)) return { value: token, type: t };
-  if (isAggregator(t)) return { value: token.toUpperCase(), type: 'AGGREGATOR' };
-  if (isMathOperator(t)) return { value: token.toUpperCase(), type: 'MATH' };
-  if (isConditioner(t)) return { value: token, type: 'CONDITIONER' };
-  if (isSeparator(t)) return { value: token, type: SEPARATORS_MAPPER[t] };
-  if (isNumber(t)) return { value: token, type: 'NUMBER' };
-  if (isString(t)) return { value: token, type: 'STRING' };
-  return { value: token, type: 'NAME' };
+  if (isOperator(t) || isExtraOperator(t)) return { value: token, type: [t] };
+  if (isSelectAll(t)) return { value: token, type: ['SELECT_ALL', 'MATH'] };
+  if (isAggregator(t)) return { value: token.toUpperCase(), type: ['AGGREGATOR'] };
+  if (isMathOperator(t)) return { value: token.toUpperCase(), type: ['MATH'] };
+  if (isConditioner(t)) return { value: token, type: ['CONDITIONER'] };
+  if (isSeparator(t)) return { value: token, type: [SEPARATORS_MAPPER[t]] };
+  if (isNumber(t)) return { value: token, type: ['NUMBER'] };
+  if (isString(t)) return { value: token, type: ['STRING'] };
+  return { value: token, type: ['NAME'] };
 }
 
 module.exports = tokenGenerator;

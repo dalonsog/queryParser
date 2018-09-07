@@ -10,6 +10,9 @@ const UPPERCASED_TOKENS = RESERVED_WORDS.EXTRA_OPERATORS
                             .concat(['AND', 'OR']);
 
 function createQueryObject (query, nodes) {
+  if (nodes.SELECT[0] === '*')
+    nodes.SELECT = [dataController.getTableHeaders(nodes.FROM)
+                                 .map(e => [e.name])];
   nodes.SELECT = mapSelect(nodes.SELECT);
   nodes.AGGREGATION = nodes.SELECT.reduce((acc, val) => {
     if (val.AGG) acc.push(val.AGG);
@@ -36,6 +39,10 @@ function findKeywordInElement (keywordList, element) {
   }
   return null;
 };
+
+function parseSelectAllAlias () {
+
+}
 
 var getStatementByKey = (statement, key) =>
   statement.reduce((acc, val) => acc.concat(val[key]), []);
@@ -94,17 +101,16 @@ function getQueryNodes (query) {
   while (!nextToken.done) {
     var token = nextToken.value;
     // If new node
-    if (RESERVED_WORDS.OPERATORS.indexOf(token.type) !== -1) {
-      currentNode = token.type;
+    if (RESERVED_WORDS.OPERATORS.indexOf(token.type[0]) !== -1) {
+      currentNode = token.type[0];
       nodes[currentNode] = [];
     }
     // Add new value
     nodes[currentNode].push(token);
     nextToken = tokenizedQuery.next();
   }
-
   Object.keys(nodes).forEach(function (node) {
-    let statement = getStatementByKey(nodes[node], 'type');
+    let statement = nodes[node].slice();
     let check = _CHECK_SYNTAX_ ? checker(statement) : { check: true };
     if (!check.check)
       throw new Error("Parsing failed. Query has errors: " + check.error);
@@ -138,7 +144,6 @@ module.exports = query => {
   var nodes = getQueryNodes(query);
   var queryObject = createQueryObject(query, nodes);
   //checkColumnsExist(queryObject);
-  console.log(queryObject)
   var data = dataController.getData(queryObject);
   var end = new Date().getTime();
   return { data, queryObject, time: end - start };
