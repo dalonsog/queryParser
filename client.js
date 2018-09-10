@@ -46,9 +46,11 @@ stdin.addListener("data", function(d) {
       var results = parseQuery(q)
       console.log("\n\tResults: ");
       console.log("\t\t" + JSON.stringify(results.data));
+      console.log('\n\tLength: ' + results.length.toString());
       console.log('\n\tTime: ' + results.time.toString() + 'ms\n');
     } catch(err) {
-      console.error("\tQuery has errors\n");
+      console.error("\tQuery has errors: \n");
+      console.error(err);
     }
   }
 });

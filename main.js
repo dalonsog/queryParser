@@ -26,5 +26,6 @@ queries.forEach(q => {
   console.log("\nResults: ");
   var results = parseQuery(q)
   console.log(results.data);
+  console.log('Length: ' + results.length.toString());
   console.log('Time: ' + results.time.toString() + 'ms');
 });

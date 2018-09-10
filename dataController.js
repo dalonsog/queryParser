@@ -75,7 +75,7 @@ function aggregator (arr, group, aggregations) {
 var mapper = columns => elem => {
   var finalElem = {};
   columns.forEach(column => {
-    let c = formatFilter(Object.keys(elem), column.SELECTOR);
+    let c = 'elem.' + column.SELECTOR;
     if (Object.keys(elem).indexOf(column.AS) === -1)
       elem[column.AS] = eval(c);
     finalElem[column.AS] = eval(c);

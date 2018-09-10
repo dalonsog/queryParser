@@ -40,10 +40,6 @@ function findKeywordInElement (keywordList, element) {
   return null;
 };
 
-function parseSelectAllAlias () {
-
-}
-
 var getStatementByKey = (statement, key) =>
   statement.reduce((acc, val) => acc.concat(val[key]), []);
 
@@ -146,5 +142,5 @@ module.exports = query => {
   //checkColumnsExist(queryObject);
   var data = dataController.getData(queryObject);
   var end = new Date().getTime();
-  return { data, queryObject, time: end - start };
+  return { data, queryObject, time: end - start, length: data.length };
 };
