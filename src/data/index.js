@@ -1,7 +1,6 @@
 const fs = require('fs');
 const Table = require('./Table');
-
-const PATH = './samples/';
+const PATH = require('../config/constants').dir.PATH;
 
 const int = val => parseInt(val);
 const float = val => parseFloat(val);
