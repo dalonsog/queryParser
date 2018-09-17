@@ -16,7 +16,11 @@ const QUERY3 = 'select C1, C1+100+1+1+1-1-1-1 as CPLUS, C1-100 as CMINUS,\n' +
 
 const QUERY_BASE = 'select * from my_table1';
 
-var queries = [QUERY_BASE, QUERY, QUERY2, QUERY3];
+const QUERY_CSV = 'select C1, C2 from my_table1 limit 5 convert csv';
+
+const QUERY_KV = 'select C1, C2 from my_table1 limit 5 convert kv';
+
+var queries = [QUERY_BASE, QUERY, QUERY2, QUERY3, QUERY_CSV, QUERY_KV];
 
 require('./src').then(obj => {
   queries.forEach(q => {

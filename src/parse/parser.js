@@ -22,6 +22,7 @@ function createQueryObject (query, nodes) {
   if (nodes.WHERE) nodes.WHERE = mapWhere(nodes.WHERE);
   if (nodes.ORDER) nodes.ORDER = mapOrder(nodes.ORDER);
   if (nodes.GROUP) nodes.GROUP = mapGroup(nodes.GROUP);
+  if (nodes.CONVERT) nodes.CONVERT = nodes.CONVERT.map(e => e.toUpperCase());
 
   var queryObject = new QueryNodes(query);
   Object.keys(nodes).forEach(node => {

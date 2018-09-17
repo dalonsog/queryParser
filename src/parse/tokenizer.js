@@ -12,6 +12,7 @@ const isExtraOperator = t => RESERVED_WORDS.EXTRA_OPERATORS.indexOf(t) !== -1;
 const isMathOperator = t => RESERVED_WORDS.MATH_OPERATORS.indexOf(t) !== -1;
 const isAggregator = t => RESERVED_WORDS.AGGREGATORS.indexOf(t) !== -1;
 const isConditioner = t => RESERVED_WORDS.CONDITIONERS.indexOf(t) !== -1;
+const isFormat = t => RESERVED_WORDS.FORMATS.indexOf(t) !== -1;
 const isSeparator = t => SEPARATORS.indexOf(t) !== -1;
 const isNumber = t => !isNaN(parseFloat(t));
 const isString = t => t.charAt(0) === '"';
@@ -52,6 +53,7 @@ function classifyToken (token) {
   if (isAggregator(t)) return { value: token.toUpperCase(), type: ['AGGREGATOR'] };
   if (isMathOperator(t)) return { value: token.toUpperCase(), type: ['MATH'] };
   if (isConditioner(t)) return { value: token, type: ['CONDITIONER'] };
+  if (isFormat(t)) return { value: token, type: ['FORMAT'] };
   if (isSeparator(t)) return { value: token, type: [SEPARATORS_MAPPER[t]] };
   if (isNumber(t)) return { value: token, type: ['NUMBER'] };
   if (isString(t)) return { value: token, type: ['STRING'] };

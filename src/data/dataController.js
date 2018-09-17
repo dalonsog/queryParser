@@ -108,6 +108,36 @@ function grouper (arr, group) {
   return groupedData;
 }
 
+function formatter (data, format) {
+  if (!data.length || !format || format === 'JSON') return data;
+  switch (format) {
+    case 'CSV':
+      var headers = Object.keys(data[0]);
+      var output = headers.join(',');
+      data.forEach(row => {
+        var values = [];
+        headers.forEach(h => {
+          values.push(row[h]);
+        });
+        output += `\n${values.join(',')}`;
+      })
+      return output;
+    case 'KV':
+      var headers = Object.keys(data[0]);
+      var output = [];
+      data.forEach(row => {
+        var values = [];
+        headers.forEach(h => {
+          values.push(`${h}=${row[h]}`);
+        });
+        output.push(values.join(','));
+      });
+      return output.join('\n');
+    default:
+      return data;
+  }
+}
+
 module.exports = tables => {
   TABLES = tables;
   return {
@@ -123,7 +153,10 @@ module.exports = tables => {
       // Limit data, if needed
       data = limitter(data, options.LIMIT);
       // Map selected columns
-      return data.map(mapper(options.SELECT));
+      data = data.map(mapper(options.SELECT));
+      // Convert to output format
+      data = formatter(data, options.CONVERT);
+      return data;
     },
     getTableHeaders: table => TABLES[table].headers,
     getTables: () => Object.keys(TABLES)
