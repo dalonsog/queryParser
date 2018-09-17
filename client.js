@@ -1,6 +1,5 @@
-var parseQuery = require('./parser');
-var getTables = require('./dataController').getTables;
-var stdin = process.openStdin();
+var getTables;
+const stdin = process.openStdin();
 
 const CLIENT_COMMANDS = ['EXIT', 'TABLES', 'FIRST', 'LAST', 'TOP10', 'TOP100',
                          'TOP1000', 'TAIL10', 'TAIL100', 'TAIL1000'];
@@ -22,35 +21,36 @@ function handleCommand (rawText) {
     case 'TABLES':
       var tables = getTables();
       console.log('\n\tTables:');
-      tables.forEach(function (table) {
-        console.log('\t\t - ' + table);
-      });
+      tables.forEach(table => console.log(`\t\t - ${table}`));
       break;
     case 'FIRST': case 'LAST': case 'TOP10': case 'TOP100':
     case 'TOP1000': case 'TAIL10': case 'TAIL100': case 'TAIL1000':
-      var template = 'select * from {table} limit {l}';
       var l = command === 'FIRST' || command === 'LAST' ? 1 : 10;
-      return template.replace('{table}', table).replace('{l}', l);
+      return `select * from ${table} limit ${l}`;
   }
 }
 
-console.log('\tSQL client initiated.\n');
+require('./src').then(obj => {
+  getTables = obj.dataController.getTables;
+  var parseQuery = obj.parser;
+  console.log('\tSQL client initiated.\n');
 
-stdin.addListener("data", function(d) {
-  var q = d.toString().trim();
-  q = handleCommand(q);
-  if (q) {
-    console.log("\n\tParsing query: ");
-    console.log("\t\t" + q);
-    try {
-      var results = parseQuery(q)
-      console.log("\n\tResults: ");
-      console.log("\t\t" + JSON.stringify(results.data));
-      console.log('\n\tLength: ' + results.length.toString());
-      console.log('\n\tTime: ' + results.time.toString() + 'ms\n');
-    } catch(err) {
-      console.error("\tQuery has errors: \n");
-      console.error(err);
+  stdin.addListener("data", function(d) {
+    var q = d.toString().trim();
+    q = handleCommand(q);
+    if (q) {
+      console.log("\n\tParsing query: ");
+      console.log("\t\t" + q);
+      try {
+        var results = parseQuery(q)
+        console.log("\n\tResults: ");
+        console.log("\t\t" + JSON.stringify(results.data));
+        console.log('\n\tLength: ' + results.length.toString());
+        console.log('\n\tTime: ' + results.time.toString() + 'ms\n');
+      } catch(err) {
+        console.error("\tQuery has errors: \n");
+        console.error(err);
+      }
     }
-  }
+  });
 });

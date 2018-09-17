@@ -12,3 +12,4 @@
 * Allow output format selection
 * Read data files on demand (instead of loading all data on memory)
 * Config file (global and internal constants)
+* Restructure project, remove dependencies

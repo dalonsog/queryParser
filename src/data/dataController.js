@@ -1,4 +1,4 @@
-const TABLES = require('./Data');
+var TABLES = {};
 const FUNCTIONS = require('./functions');
 
 var retrieveData = table => TABLES[table].data;
@@ -108,21 +108,24 @@ function grouper (arr, group) {
   return groupedData;
 }
 
-exports.getData = function (options) {
-  // Get data from table
-  var data = retrieveData(options.FROM);
-  // Filter data, if needed
-  data = filterer(data, options.WHERE);
-  // Aggregate data, if needed
-  data = aggregator(data, options.GROUP, options.AGGREGATION);
-  // Order data, if needed
-  data = orderer(data, options.ORDER);
-  // Limit data, if needed
-  data = limitter(data, options.LIMIT);
-  // Map selected columns
-  return data.map(mapper(options.SELECT));
+module.exports = tables => {
+  TABLES = tables;
+  return {
+    getData: function (options) {
+      // Get data from table
+      var data = retrieveData(options.FROM);
+      // Filter data, if needed
+      data = filterer(data, options.WHERE);
+      // Aggregate data, if needed
+      data = aggregator(data, options.GROUP, options.AGGREGATION);
+      // Order data, if needed
+      data = orderer(data, options.ORDER);
+      // Limit data, if needed
+      data = limitter(data, options.LIMIT);
+      // Map selected columns
+      return data.map(mapper(options.SELECT));
+    },
+    getTableHeaders: table => TABLES[table].headers,
+    getTables: () => Object.keys(TABLES)
+  };
 };
-
-exports.getTableHeaders = table => TABLES[table].headers;
-
-exports.getTables = () => Object.keys(TABLES);

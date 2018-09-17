@@ -1,6 +1,6 @@
 'use strict';
 
-const RESERVED_WORDS = require('./reservedWords');
+const RESERVED_WORDS = require('../config/reservedWords');
 const SEPARATORS = RESERVED_WORDS.SEPARATORS
                      .concat(RESERVED_WORDS.MATH_OPERATORS)
                      .concat(RESERVED_WORDS.CONDITIONERS);

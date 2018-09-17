@@ -1,5 +1,3 @@
-var parseQuery = require('./parser');
-
 const QUERY = 'select C1 as num, C2 as text, C3\n' +
               'from my_table1\n' +
               'where (C1 < 4) and (C1 > 1)\n' +
@@ -20,12 +18,14 @@ const QUERY_BASE = 'select * from my_table1';
 
 var queries = [QUERY_BASE, QUERY, QUERY2, QUERY3];
 
-queries.forEach(q => {
-  console.log("\nParsing query: ");
-  console.log(q);
-  console.log("\nResults: ");
-  var results = parseQuery(q)
-  console.log(results.data);
-  console.log('Length: ' + results.length.toString());
-  console.log('Time: ' + results.time.toString() + 'ms');
+require('./src').then(obj => {
+  queries.forEach(q => {
+    console.log("\nParsing query: ");
+    console.log(q);
+    console.log("\nResults: ");
+    var results = obj.parser(q)
+    console.log(results.data);
+    console.log('Length: ' + results.length.toString());
+    console.log('Time: ' + results.time.toString() + 'ms');
+  });
 });

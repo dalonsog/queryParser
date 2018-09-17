@@ -1,10 +1,11 @@
 const _CHECK_SYNTAX_ = true;
 
-const dataController = require('./dataController');
+var dataController;
+
 const QueryNodes = require('./queryNodes');
 const tokenize = require('./tokenizer');
 const checker = require('./syntaxChecker');
-const RESERVED_WORDS = require('./reservedWords');
+const RESERVED_WORDS = require('../config/reservedWords');
 const UPPERCASED_TOKENS = RESERVED_WORDS.EXTRA_OPERATORS
                             .concat(RESERVED_WORDS.AGGREGATORS)
                             .concat(['AND', 'OR']);
@@ -135,12 +136,15 @@ function checkColumnsExist (queryObject) {
           "Column %s does not exist".replace('%s', requiredHeaders[i]));
 }
 
-module.exports = query => {
-  var start = new Date().getTime();
-  var nodes = getQueryNodes(query);
-  var queryObject = createQueryObject(query, nodes);
-  //checkColumnsExist(queryObject);
-  var data = dataController.getData(queryObject);
-  var end = new Date().getTime();
-  return { data, queryObject, time: end - start, length: data.length };
+module.exports = controller => {
+  dataController = controller;
+  return query => {
+    var start = new Date().getTime();
+    var nodes = getQueryNodes(query);
+    var queryObject = createQueryObject(query, nodes);
+    //checkColumnsExist(queryObject);
+    var data = dataController.getData(queryObject);
+    var end = new Date().getTime();
+    return { data, queryObject, time: end - start, length: data.length };
+  };
 };
