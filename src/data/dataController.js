@@ -159,6 +159,7 @@ module.exports = tables => {
       return data;
     },
     getTableHeaders: table => TABLES[table].headers,
+    printTable: table => `${table} [${TABLES[table].headers.map(t => `${t.name}(${t.type})`)}]`,
     getTables: () => Object.keys(TABLES)
   };
 };

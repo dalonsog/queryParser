@@ -4,7 +4,7 @@ var dataController;
 
 const QueryNodes = require('./queryNodes');
 const tokenize = require('./tokenizer');
-const checker = require('./syntaxChecker');
+const checker = require('../lang/sql/checker');
 const RESERVED_WORDS = require('../config/reservedWords');
 const UPPERCASED_TOKENS = RESERVED_WORDS.EXTRA_OPERATORS
                             .concat(RESERVED_WORDS.AGGREGATORS)

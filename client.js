@@ -1,4 +1,4 @@
-var getTables;
+var getTables, printTable;
 const stdin = process.openStdin();
 
 const CLIENT_COMMANDS = ['EXIT', 'TABLES', 'FIRST', 'LAST', 'TOP10', 'TOP100',
@@ -21,7 +21,7 @@ function handleCommand (rawText) {
     case 'TABLES':
       var tables = getTables();
       console.log('\n\tTables:');
-      tables.forEach(table => console.log(`\t\t - ${table}`));
+      tables.forEach(table => console.log(`\t\t - ${printTable(table)}\n`));
       break;
     case 'FIRST': case 'LAST': case 'TOP10': case 'TOP100':
     case 'TOP1000': case 'TAIL10': case 'TAIL100': case 'TAIL1000':
@@ -32,6 +32,7 @@ function handleCommand (rawText) {
 
 require('./src').then(obj => {
   getTables = obj.dataController.getTables;
+  printTable = obj.dataController.printTable;
   var parseQuery = obj.parser;
   console.log('\tSQL client initiated.\n');
 
