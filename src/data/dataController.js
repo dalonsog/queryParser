@@ -1,27 +1,13 @@
 var TABLES = {};
 const FUNCTIONS = require('./functions');
 
-var retrieveData = table => TABLES[table].data;
+const retrieveData = table => TABLES[table].data;
 
-var limitter = (arr, limit) => limit ? arr.slice(0, limit) : arr;
+const limitter = (arr, limit) => limit ? arr.slice(0, limit) : arr;
 
-var filterer = (arr, where) => where ? filterFunc(arr, where) : arr;
+const filterer = (arr, where) => where ? filterFunc(arr, where) : arr;
 
-function filterFunc (arr, where) {
-  var newArr = arr.slice(0);
-  var columns = Object.keys(newArr[0]);
-  var whereFilter = formatFilter(columns, where);
-
-  return newArr.filter(elem => eval(whereFilter));
-}
-
-function formatFilter (columns, whereFilter) {
-  columns.forEach(function (column) {
-    whereFilter = whereFilter.split(column).join('elem.' + column);
-  });
-
-  return whereFilter;
-}
+const filterFunc = (arr, where) => arr.slice(0).filter(elem => eval(where));
 
 function orderer (arr, order) {
   if (!order.length) return arr;
@@ -75,10 +61,11 @@ function aggregator (arr, group, aggregations) {
 var mapper = columns => elem => {
   var finalElem = {};
   columns.forEach(column => {
-    let c = 'elem.' + column.SELECTOR;
-    if (Object.keys(elem).indexOf(column.AS) === -1)
-      elem[column.AS] = eval(c);
-    finalElem[column.AS] = eval(c);
+    var headers = Object.keys(elem);
+    var val = eval(column.SELECTOR);
+    if (headers.indexOf(column.AS) === -1)
+      elem[column.AS] = val;
+    finalElem[column.AS] = val;
   });
   return finalElem;
 };
@@ -89,6 +76,7 @@ function grouper (arr, group) {
   var groupedData = [arr];
 
   group.forEach(function (key) {
+    console.log(key)
     var processedData = [];
 
     groupedData.forEach(function (rawData) {
@@ -155,8 +143,10 @@ module.exports = tables => {
       // Map selected columns
       data = data.map(mapper(options.SELECT));
       // Convert to output format
-      data = formatter(data, options.CONVERT);
-      return data;
+      return {
+        data: formatter(data, options.CONVERT),
+        length: data.length
+      };
     },
     getTableHeaders: table => TABLES[table].headers,
     printTable: table => `${table} [${TABLES[table].headers.map(t => `${t.name}(${t.type})`)}]`,

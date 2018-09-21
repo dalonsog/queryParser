@@ -9,7 +9,7 @@
 * MATH operators on 'where' clause
 * More data types (null, ip4, dates, geocoords, array, json...)
 * Custom DSL (JSON based)
-* Allow output format selection (Already done CSV, KV. Fix output length)
+* Allow output format selection (Already done CSV, KV)
 * Read data files on demand (instead of loading all data on memory)
 * Config file (global and internal constants)
 * Restructure project, remove dependencies

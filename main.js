@@ -1,4 +1,4 @@
-const QUERY = 'select C1 as num, C2 as text, C3\n' +
+const QUERY = 'select C1 as num, C2 as text, C4\n' +
               'from my_table1\n' +
               'where (C1 < 4) and (C1 > 1)\n' +
               'order by C4 desc\n' +
@@ -14,13 +14,15 @@ const QUERY3 = 'select C1, C1+100+1+1+1-1-1-1 as CPLUS, C1-100 as CMINUS,\n' +
                '       C1%2 as CMODULE\n' +
                'from my_table1 limit 1';
 
+const QUERY4 = 'select 1 as a, "asdf" as b, C1 * a as c from my_table1 where C1>1';
+
 const QUERY_BASE = 'select * from my_table1';
 
 const QUERY_CSV = 'select C1, C2 from my_table1 limit 5 convert csv';
 
 const QUERY_KV = 'select C1, C2 from my_table1 limit 5 convert kv';
 
-var queries = [QUERY_BASE, QUERY, QUERY2, QUERY3, QUERY_CSV, QUERY_KV];
+var queries = [QUERY_BASE, QUERY, QUERY2, QUERY3, QUERY_CSV, QUERY_KV, QUERY4];
 
 require('./src').then(obj => {
   queries.forEach(q => {
