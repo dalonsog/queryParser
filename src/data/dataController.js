@@ -96,7 +96,7 @@ function grouper (arr, group) {
 }
 
 function formatter (data, format) {
-  if (!data.length || !format || format === 'JSON') return data;
+  if (!data.length) return data;
   switch (format) {
     case 'CSV':
       var headers = Object.keys(data[0]);
@@ -120,8 +120,9 @@ function formatter (data, format) {
         output.push(values.join(','));
       });
       return output.join('\n');
+    case 'JSON':
     default:
-      return data;
+      return `[${data.map(e=>JSON.stringify(e)).join(',\n')}]`;
   }
 }
 

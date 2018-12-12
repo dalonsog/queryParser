@@ -48,7 +48,7 @@ require('./src').then(obj => {
       try {
         var results = parseQuery(q)
         console.log("\n\tResults: ");
-        console.log("\t\t" + JSON.stringify(results.data));
+        console.log("\t\t" + results.data);
         console.log('\n\tLength: ' + results.length.toString());
         console.log('\n\tTime: ' + results.time.toString() + 'ms\n');
       } catch(err) {

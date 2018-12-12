@@ -11,6 +11,7 @@ const UPPERCASED_TOKENS = RESERVED_WORDS.EXTRA_OPERATORS
                             .concat(['AND', 'OR']);
 
 const COLUMN_EXTRACT_REGEX = /elem\.(?:[A-Z]+\_\_)?(\w+)/g;
+const SELECTOR_EXTRACT_REGEX = /(\d+|\"[a-zA-Z]+\")/g;
 
 function createQueryObject (query, nodes) {
   if (nodes.SELECT[0] === '*')
@@ -144,17 +145,30 @@ function checkColumnsExist (queryObject) {
                          acc[val.name] = val.type;
                          return acc;
                        }, {});
-
-  for (var i = 0; i < selectors.length; i++) {
-    var fields = [];
-    var field, elem = selectors[i];
+  for (let i = 0; i < selectors.length; i++) {
+    let fields = [];
+    let field, type, elem = selectors[i];
     while (field = COLUMN_EXTRACT_REGEX.exec(elem)) fields.push(field[1]);
-    //TODO: Check wether all extracted field names are in 'tableHeaders' and
-    //      their type matches. If so, add the ALIAS to 'tableHeaders'
-    for (field of fields)
+    for (field of fields) {
       if (!(field in tableHeaders))
         throw new Error(`Column ${field} does not exist`);
-    tableHeaders[queryObject.SELECT[i].AS] = 'str';
+      if (!type) type = tableHeaders[field];
+      if (tableHeaders[field] !== type)
+        throw new Error(
+          `Column ${field} should be of type '${tableHeaders[field]}'`);
+    }
+    if (!type) {
+      let parts = [];
+      let part;
+      while (part = SELECTOR_EXTRACT_REGEX.exec(elem)) parts.push(part[1]);
+      for (part of parts) {
+        let partType = isNaN(part) ? 'str' : 'int';
+        if (!type) type = partType;
+        if (partType !== type)
+          throw new Error(`${part} should be of type '${partType}'`);
+      }
+    }
+    tableHeaders[queryObject.SELECT[i].AS] = type;
   }
 
   return true;
