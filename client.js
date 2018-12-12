@@ -1,8 +1,9 @@
 var getTables, printTable;
 const stdin = process.openStdin();
 
-const CLIENT_COMMANDS = ['EXIT', 'TABLES', 'FIRST', 'LAST', 'TOP10', 'TOP100',
-                         'TOP1000', 'TAIL10', 'TAIL100', 'TAIL1000'];
+const CLIENT_COMMANDS = ['EXIT', 'QUIT', 'Q', 'TABLES', 'FIRST', 'LAST',
+                         'TOP10', 'TOP100', 'TOP1000', 'TAIL10', 'TAIL100',
+                         'TAIL1000'];
 
 function exitClient() {
   console.log("\tHave a nice day :D");
@@ -16,6 +17,8 @@ function handleCommand (rawText) {
   if (CLIENT_COMMANDS.indexOf(command) === -1) return rawText;
   switch (command) {
     case 'EXIT':
+    case 'QUIT':
+    case 'Q':
       exitClient();
       break;
     case 'TABLES':

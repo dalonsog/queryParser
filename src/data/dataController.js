@@ -76,7 +76,6 @@ function grouper (arr, group) {
   var groupedData = [arr];
 
   group.forEach(function (key) {
-    console.log(key)
     var processedData = [];
 
     groupedData.forEach(function (rawData) {

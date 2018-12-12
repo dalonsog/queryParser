@@ -10,6 +10,8 @@ const UPPERCASED_TOKENS = RESERVED_WORDS.EXTRA_OPERATORS
                             .concat(RESERVED_WORDS.AGGREGATORS)
                             .concat(['AND', 'OR']);
 
+const COLUMN_EXTRACT_REGEX = /elem\.(?:[A-Z]+\_\_)?(\w+)/g;
+
 function createQueryObject (query, nodes) {
   if (nodes.SELECT[0] === '*')
     nodes.SELECT = [dataController.getTableHeaders(nodes.FROM)
@@ -135,20 +137,27 @@ function getQueryNodes (query) {
 
 // TODO
 function checkColumnsExist (queryObject) {
-  var tableHeaders = dataController.getTableHeaders(queryObject.FROM)
-                                   .map(e => e.name);
-  var requiredHeaders = queryObject.SELECT.reduce((acc, val) => {
-    if (acc.indexOf(val.SELECTOR) === -1) acc.push(val.SELECTOR);
-    return acc;
-  }, []);
-  var aliasedHeaders = queryObject.SELECT.reduce((acc, val) => {
-    if (acc.indexOf(val.AS) === -1) acc.push(val.AS);
-    return acc;
-  }, []);
-  for (let i = 0; i < requiredHeaders.length; i++)
-    if (tableHeaders.indexOf(requiredHeaders[i]) === -1)
-      throw new Error(
-          "Column %s does not exist".replace('%s', requiredHeaders[i]));
+  var selectors = queryObject.SELECT.map(e=>e.SELECTOR);
+  var tableHeaders = dataController
+                       .getTableHeaders(queryObject.FROM)
+                       .reduce((acc, val) => {
+                         acc[val.name] = val.type;
+                         return acc;
+                       }, {});
+
+  for (var i = 0; i < selectors.length; i++) {
+    var fields = [];
+    var field, elem = selectors[i];
+    while (field = COLUMN_EXTRACT_REGEX.exec(elem)) fields.push(field[1]);
+    //TODO: Check wether all extracted field names are in 'tableHeaders' and
+    //      their type matches. If so, add the ALIAS to 'tableHeaders'
+    for (field of fields)
+      if (!(field in tableHeaders))
+        throw new Error(`Column ${field} does not exist`);
+    tableHeaders[queryObject.SELECT[i].AS] = 'str';
+  }
+
+  return true;
 }
 
 module.exports = controller => {
@@ -157,7 +166,7 @@ module.exports = controller => {
     var start = new Date().getTime();
     var nodes = getQueryNodes(query);
     var queryObject = createQueryObject(query, nodes);
-    //checkColumnsExist(queryObject);
+    if (!checkColumnsExist(queryObject)) return {};
     var { data, length } = dataController.getData(queryObject);
     var end = new Date().getTime();
     return { data, length, queryObject, time: end - start };
