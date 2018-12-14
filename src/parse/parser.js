@@ -10,8 +10,7 @@ const UPPERCASED_TOKENS = RESERVED_WORDS.EXTRA_OPERATORS
                             .concat(RESERVED_WORDS.AGGREGATORS)
                             .concat(['AND', 'OR']);
 
-const COLUMN_EXTRACT_REGEX = /elem\.(?:[A-Z]+\_\_)?(\w+)/g;
-const SELECTOR_EXTRACT_REGEX = /(\d+|\"[a-zA-Z]+\")/g;
+const SELECTOR_EXTRACT_REGEX = /(\d+|\"[a-zA-Z]+\"|elem\.(?:[A-Z]+\_\_)?\w+)/g;
 
 function createQueryObject (query, nodes) {
   if (nodes.SELECT[0] === '*')
@@ -146,27 +145,21 @@ function checkColumnsExist (queryObject) {
                          return acc;
                        }, {});
   for (let i = 0; i < selectors.length; i++) {
-    let fields = [];
-    let field, type, elem = selectors[i];
-    while (field = COLUMN_EXTRACT_REGEX.exec(elem)) fields.push(field[1]);
-    for (field of fields) {
-      if (!(field in tableHeaders))
-        throw new Error(`Column ${field} does not exist`);
-      if (!type) type = tableHeaders[field];
-      if (tableHeaders[field] !== type)
-        throw new Error(
-          `Column ${field} should be of type '${tableHeaders[field]}'`);
-    }
-    if (!type) {
-      let parts = [];
-      let part;
-      while (part = SELECTOR_EXTRACT_REGEX.exec(elem)) parts.push(part[1]);
-      for (part of parts) {
-        let partType = isNaN(part) ? 'str' : 'int';
-        if (!type) type = partType;
-        if (partType !== type)
-          throw new Error(`${part} should be of type '${partType}'`);
-      }
+    let parts = [], elem = selectors[i];
+    let part, type;
+    while (part = SELECTOR_EXTRACT_REGEX.exec(elem)) parts.push(part[1]);
+    for (part of parts) {
+      if (part.indexOf('elem.') > -1) {
+        part = part.replace('elem.', '');
+        //TODO: Check functions types
+        var partType = queryObject.SELECT[i].AGG ? '???' : tableHeaders[part];
+        if (!partType) throw new Error(`Column ${part} does not exist`);
+      } else
+        var partType = isNaN(part) ? 'str' : 'int';
+      if (!type) type = partType;
+      if (partType !== type)
+        throw new Error(`${part} should be of type '${type}'`);
+      console.log(`${part} -> ${type}`);
     }
     tableHeaders[queryObject.SELECT[i].AS] = type;
   }
